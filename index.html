@@ -1,0 +1,2021 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anamnexy — SOAP Generator & Kalkulator Dosis</title>
+<style>
+:root{
+  --navy:#16324a; --navy2:#1f4663; --accent:#2f7d6b; --accent2:#3b9b85;
+  --bg:#f3f6f8; --card:#ffffff; --line:#dde5ea; --text:#1d2a32; --muted:#647683;
+  --warn:#b5552f; --obgyn:#a1467c; --bedah:#b8862e; --jantung:#c0392b; --umum:#2f7d6b;
+  --radius:10px;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:16px 26px;}
+header h1{margin:0;font-size:1.3rem;letter-spacing:.3px;}
+header p{margin:4px 0 0;font-size:.83rem;opacity:.85;}
+
+.nav-main{display:flex;gap:8px;background:#fff;padding:10px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:60;box-shadow:0 2px 6px rgba(0,0,0,.05);}
+.nav-btn{border:none;background:#eef2f4;color:var(--navy2);padding:9px 18px;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;}
+.nav-btn.active{background:var(--navy);color:#fff;}
+.nav-btn:hover{background:#dfe7ea;}
+
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px;}
+.view{display:none;}
+.view.active{display:block;animation:fade .2s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+/* HOME */
+.home-hero{margin:0 0 26px;padding:30px 28px;border-radius:18px;background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 55%,var(--accent) 130%);color:#fff;position:relative;overflow:hidden;}
+.home-hero::before{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.07);}
+.home-hero::after{content:"";position:absolute;right:40px;bottom:-80px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06);}
+.home-hero h2{margin:0 0 6px;color:#fff;font-size:1.5rem;position:relative;}
+.home-hero p{margin:0 0 18px;color:rgba(255,255,255,.85);font-size:.95rem;position:relative;}
+.hero-stats{display:flex;gap:26px;flex-wrap:wrap;position:relative;}
+.hero-stat{display:flex;flex-direction:column;}
+.hero-stat b{font-size:1.5rem;font-weight:800;line-height:1.1;}
+.hero-stat span{font-size:.74rem;color:rgba(255,255,255,.78);}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:760px){.home-grid{grid-template-columns:1fr;} .home-hero{padding:24px 18px;} .hero-stats{gap:18px;}}
+.home-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:26px 24px;text-align:left;cursor:pointer;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.05);font-family:inherit;}
+.home-card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.09);border-color:var(--accent2);}
+.home-icon{font-size:1.6rem;margin-bottom:12px;width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;}
+.home-icon.ic-soap{background:#eaf0ff;}
+.home-icon.ic-dosis{background:#eaf8f1;}
+.home-icon.ic-guideline{background:#fff2e6;}
+.home-card h3{margin:0 0 8px;color:var(--navy);font-size:1.18rem;}
+.home-card p{margin:0 0 14px;color:var(--muted);font-size:.88rem;line-height:1.55;}
+.home-cta{color:var(--accent);font-weight:700;font-size:.85rem;}
+.home-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.home-badge{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;background:#eef6f3;color:var(--accent);}
+.brand-logo{display:flex;justify-content:center;margin-bottom:10px;}
+
+/* MODULE HEADER */
+.module-header{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.back-btn{border:none;background:#eef2f4;color:var(--navy2);padding:7px 14px;border-radius:7px;font-size:.8rem;font-weight:700;cursor:pointer;}
+.back-btn:hover{background:#dfe7ea;}
+.module-header h2{margin:0;color:var(--navy);font-size:1.22rem;}
+
+/* PTYPE SUBNAV */
+.ptype-nav{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.ptype-btn{border:none;background:#eef2f4;color:var(--navy2);padding:9px 16px;border-radius:8px;font-size:.84rem;font-weight:700;cursor:pointer;}
+.ptype-btn:hover{background:#dfe7ea;}
+.ptype-btn.active[data-ptype="umum"]{background:var(--umum);color:#fff;}
+.ptype-btn.active[data-ptype="obgyn"]{background:var(--obgyn);color:#fff;}
+.ptype-btn.active[data-ptype="bedah"]{background:var(--bedah);color:#fff;}
+.ptype-btn.active[data-ptype="jantung"]{background:var(--jantung);color:#fff;}
+.ptype-panel{display:none;}
+.ptype-panel.active{display:block;}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin-bottom:16px;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+.card h2{margin:0 0 12px;font-size:1.02rem;color:var(--navy);border-left:4px solid var(--accent2);padding-left:10px;}
+.umum .card h2{border-color:var(--umum);}
+.obgyn .card h2{border-color:var(--obgyn);}
+.bedah .card h2{border-color:var(--bedah);}
+.jantung .card h2{border-color:var(--jantung);}
+
+.grid{display:grid;gap:10px;}
+.grid.cols2{grid-template-columns:1fr 1fr;}
+.grid.cols4{grid-template-columns:1fr 1fr 1fr 1fr;}
+@media(max-width:760px){.grid.cols4{grid-template-columns:1fr 1fr;}}
+
+label{display:block;font-size:.74rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+input[type=text],input[type=number],input[type=date],textarea,select{
+  width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-size:.9rem;font-family:inherit;background:#fbfcfd;color:var(--text);
+}
+textarea{resize:vertical;min-height:64px;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 2px rgba(59,155,133,.18);}
+.field{margin-bottom:0;}
+.bb-link{background:none;border:none;color:var(--accent);font-size:.74rem;font-weight:700;cursor:pointer;text-decoration:underline;margin-top:4px;padding:0;}
+
+.pemfis-group{margin-bottom:16px;padding-bottom:4px;border-bottom:1px solid #eef1f3;}
+.pemfis-group:last-of-type{border-bottom:none;}
+.pemfis-group>div.title{display:flex;justify-content:space-between;align-items:baseline;font-size:.83rem;font-weight:700;color:var(--navy2);margin-bottom:7px;flex-wrap:wrap;gap:6px;}
+.chk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:5px 14px;}
+.chk{display:flex;align-items:flex-start;gap:6px;font-size:.83rem;padding:3px 0;cursor:pointer;}
+.chk input{width:15px;height:15px;margin-top:2px;accent-color:var(--accent2);cursor:pointer;flex-shrink:0;}
+.chk span{line-height:1.3;}
+.chk input:checked ~ span{color:var(--navy);font-weight:600;}
+
+.reset-btn{background:#eef6f3;color:var(--accent);border:1px solid #cfe7df;border-radius:6px;font-size:.7rem;padding:3px 9px;cursor:pointer;font-weight:700;}
+.reset-btn:hover{background:#dcf0e9;}
+
+.extra-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);}
+.extra-field{flex:1;min-width:170px;}
+
+/* PREVIEW EMBEDDED */
+.preview-card{border:1px solid var(--accent2);background:#f7fcfa;}
+.preview-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;}
+.preview-header h2{border:none;padding:0;margin:0;}
+.btn{border:none;border-radius:7px;padding:8px 16px;font-size:.83rem;font-weight:700;cursor:pointer;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.soap-preview{background:#fff;border:1px solid var(--line);border-radius:8px;padding:20px 22px;font-family:'Consolas','Courier New',monospace;font-size:.85rem;line-height:1.65;white-space:pre-wrap;}
+
+/* DOSIS MODULE */
+.disclaimer{background:#fff7ed;border:1px solid #fcd9b0;color:#92450e;padding:11px 14px;border-radius:8px;font-size:.8rem;margin-bottom:16px;line-height:1.5;}
+.bb-bar{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:14px;flex-wrap:wrap;position:sticky;top:54px;z-index:40;box-shadow:0 2px 6px rgba(0,0,0,.04);}
+.bb-bar label{margin:0;}
+.bb-bar input{width:110px;}
+.bb-bar .hint{font-size:.78rem;color:var(--muted);}
+
+.dosis-toolbar{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px;}
+.az-bar{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0 6px;}
+.az-letter{width:27px;height:27px;border:none;border-radius:6px;background:#eef2f4;color:var(--navy2);font-weight:700;font-size:.76rem;cursor:pointer;}
+.az-letter:hover{background:var(--accent2);color:#fff;}
+.az-letter.disabled{background:#f3f5f6;color:#c3cdd2;cursor:default;}
+#drugCount{font-size:.78rem;color:var(--muted);}
+
+.letter-group{margin-bottom:4px;}
+.letter-anchor{font-size:1.25rem;font-weight:800;color:#fff;background:var(--navy2);width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin:16px 0 8px;}
+
+.drug-card{background:#fff;border:1px solid var(--line);border-radius:9px;margin-bottom:8px;overflow:hidden;}
+.drug-toggle{width:100%;border:none;background:none;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;text-align:left;gap:10px;font-family:inherit;}
+.drug-toggle:hover{background:#f7f9fa;}
+.drug-toggle-main{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.cat-badge{color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:5px;white-space:nowrap;}
+.drug-name{font-weight:800;color:var(--navy);font-size:.96rem;}
+.drug-rule{font-size:.78rem;color:var(--muted);}
+.chevron{transition:.2s;color:var(--muted);flex-shrink:0;}
+.drug-card.open .chevron{transform:rotate(180deg);}
+.drug-detail{display:none;padding:0 14px 14px;}
+.drug-card.open .drug-detail{display:block;}
+.drug-route{font-size:.78rem;color:var(--muted);margin-bottom:6px;}
+.maxd{font-size:.74rem;color:var(--warn);margin:4px 0;}
+
+.sediaan-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:.83rem;}
+.sediaan-table th{text-align:left;background:#f3f6f8;color:var(--muted);font-size:.68rem;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--line);}
+.sediaan-table td{padding:6px 8px;border-bottom:1px solid #eef1f3;vertical-align:top;}
+.sediaan-table tr:last-child td{border-bottom:none;}
+.result{font-weight:800;color:var(--accent);}
+.warn-pill{display:inline-block;background:#fbeae3;color:var(--warn);font-size:.68rem;padding:2px 7px;border-radius:5px;font-weight:700;margin-left:4px;}
+.brand{color:var(--navy2);font-weight:700;}
+
+footer{text-align:center;color:var(--muted);font-size:.75rem;padding:22px;}
+
+@media print{
+  header, .nav-main, .ptype-nav, .module-header, .bb-bar, .dosis-toolbar, .preview-header button{display:none !important;}
+  .card:not(.preview-card){display:none !important;}
+  .soap-preview{border:none;padding:0;}
+}
+
+/* ===== LOGIN ===== */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--navy),var(--navy2));padding:20px;}
+.login-box{background:#fff;border-radius:16px;padding:34px 32px;max-width:380px;width:100%;box-shadow:0 18px 40px rgba(0,0,0,.25);}
+.login-box h1{margin:0 0 4px;color:var(--navy);font-size:1.25rem;text-align:center;}
+.login-box .sub{text-align:center;color:var(--muted);font-size:.82rem;margin-bottom:20px;}
+.login-tabs{display:flex;background:#eef2f4;border-radius:9px;padding:3px;margin-bottom:18px;}
+.login-tab{flex:1;border:none;background:none;padding:8px;border-radius:7px;font-weight:700;font-size:.82rem;color:var(--navy2);cursor:pointer;}
+.login-tab.active{background:var(--navy);color:#fff;}
+.login-field{margin-bottom:12px;}
+.login-error{background:#fbeae3;color:var(--warn);font-size:.78rem;padding:8px 10px;border-radius:7px;margin-bottom:12px;display:none;}
+.login-error.show{display:block;}
+.login-btn{width:100%;border:none;background:var(--accent);color:#fff;padding:11px;border-radius:8px;font-weight:700;font-size:.9rem;cursor:pointer;margin-top:4px;}
+.login-btn:hover{background:var(--accent2);}
+.login-hint{font-size:.72rem;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5;}
+.app-shell{display:none;}
+.app-shell.active{display:block;}
+.topbar-user{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.role-pill{font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;}
+.role-pill.admin{background:#fce8d6;color:var(--bedah);}
+.role-pill.member{background:#eef6f3;color:var(--accent);}
+.logout-btn{border:none;background:#fff2f0;color:var(--warn);padding:7px 12px;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;}
+.logout-btn:hover{background:#fde2dc;}
+
+/* ===== ADMIN ===== */
+.admin-form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:6px;}
+.admin-form .field{flex:1;min-width:140px;}
+.member-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:.85rem;}
+.member-table th{text-align:left;background:#f3f6f8;color:var(--muted);font-size:.68rem;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--line);}
+.member-table td{padding:8px 10px;border-bottom:1px solid #eef1f3;}
+.del-btn{border:none;background:#fff2f0;color:var(--warn);padding:5px 10px;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;}
+.del-btn:hover{background:#fde2dc;}
+.status-msg{font-size:.78rem;padding:8px 10px;border-radius:7px;margin-top:8px;display:none;}
+.status-msg.ok{display:block;background:#eef6f3;color:var(--accent);}
+.status-msg.err{display:block;background:#fbeae3;color:var(--warn);}
+
+/* ===== GUIDELINE ===== */
+.gl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:18px;}
+.gl-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;transition:.15s;}
+.gl-card:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.08);border-color:var(--accent2);}
+.gl-card .gl-ico{margin-bottom:8px;}
+.gl-card h4{margin:0 0 4px;color:var(--navy);font-size:.95rem;}
+.gl-card p{margin:0;color:var(--muted);font-size:.78rem;line-height:1.4;}
+.gl-tag{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:#eef6f3;color:var(--accent);margin-bottom:8px;}
+.gl-detail{display:none;}
+.gl-detail.active{display:block;}
+.gl-back{margin-bottom:14px;}
+.gl-illust{display:flex;justify-content:center;margin:10px 0 16px;background:#f7fcfa;border:1px solid var(--line);border-radius:10px;padding:14px;}
+.gl-illust svg{max-width:100%;height:auto;}
+.gl-section{margin-bottom:14px;}
+.gl-section h4{margin:0 0 6px;color:var(--navy2);font-size:.88rem;}
+.gl-section ul{margin:0;padding-left:20px;font-size:.86rem;line-height:1.65;color:var(--text);}
+.gl-section ol{margin:0;padding-left:20px;font-size:.86rem;line-height:1.65;color:var(--text);}
+.gl-source{font-size:.72rem;color:var(--muted);margin-top:14px;border-top:1px dashed var(--line);padding-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN SCREEN ============ -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="brand-logo">
+      <svg viewBox="0 0 60 60" width="54" height="54" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="30" cy="30" r="29" fill="url(#logoGrad)"/>
+        <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="60" y2="60"><stop offset="0" stop-color="#1f9d7c"/><stop offset="1" stop-color="#0d3b66"/></linearGradient></defs>
+        <path d="M8 32 H19 L23 21 L29 41 L34 27 L38 32 H52" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="52" cy="32" r="2.6" fill="#fff"/>
+      </svg>
+    </div>
+    <h1>Anamnexy</h1>
+    <p class="sub">Masuk untuk mengakses SOAP Generator, Kalkulator Dosis & Guideline 2026</p>
+    <div class="login-tabs">
+      <button type="button" class="login-tab active" data-role="member" id="tabMember">Member</button>
+      <button type="button" class="login-tab" data-role="admin" id="tabAdmin">Admin</button>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-field">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Masukkan username" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Masukkan password" autocomplete="current-password">
+    </div>
+    <button type="button" class="login-btn" id="loginSubmitBtn">Masuk</button>
+    <p class="login-hint" id="loginHint">Akun admin default: <b>admin</b> / <b>admin123</b><br>Segera ganti password &amp; tambahkan member melalui menu Kelola Member.</p>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div class="app-shell" id="appShell">
+
+<header style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <svg viewBox="0 0 60 60" width="40" height="40" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="29" fill="url(#logoGradHeader)"/>
+      <defs><linearGradient id="logoGradHeader" x1="0" y1="0" x2="60" y2="60"><stop offset="0" stop-color="#1f9d7c"/><stop offset="1" stop-color="#0d3b66"/></linearGradient></defs>
+      <path d="M8 32 H19 L23 21 L29 41 L34 27 L38 32 H52" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="52" cy="32" r="2.6" fill="#fff"/>
+    </svg>
+    <div>
+      <h1>Anamnexy</h1>
+      <p>SOAP Generator & Kalkulator Dosis Obat — dokumentasi klinis cepat, rapi, dan profesional</p>
+    </div>
+  </div>
+  <div class="topbar-user" id="topbarUser"></div>
+</header>
+
+<div class="nav-main" id="navMain">
+  <button class="nav-btn active" data-goto="home">🏠 Beranda</button>
+  <button class="nav-btn" data-goto="soap">📋 SOAP Generator</button>
+  <button class="nav-btn" data-goto="dosis">💊 Hitung Dosis Obat</button>
+  <button class="nav-btn" data-goto="guideline">📘 Guideline 2026</button>
+  <button class="nav-btn" data-goto="admin" id="navAdminBtn" style="display:none;">🛠️ Kelola Member</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <div id="view-home" class="view active">
+    <div class="home-hero">
+      <h2 id="homeGreeting">Selamat datang 👋</h2>
+      <p>Semua alat bantu klinis harian Anda, dalam satu tempat.</p>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>100+</b><span>Obat &amp; sediaan</span></div>
+        <div class="hero-stat"><b>40+</b><span>Ensiklopedia diagnosis</span></div>
+        <div class="hero-stat"><b>9</b><span>Guideline IGD</span></div>
+        <div class="hero-stat"><b>6</b><span>Jenis SOAP</span></div>
+      </div>
+    </div>
+    <div class="home-grid">
+      <button type="button" class="home-card" data-goto="soap">
+        <div class="home-icon ic-soap">📋</div>
+        <h3>SOAP Generator</h3>
+        <div class="home-badges">
+          <span class="home-badge">Pasien Umum</span>
+          <span class="home-badge">Obgyn</span>
+          <span class="home-badge">Bedah</span>
+          <span class="home-badge">Jantung</span>
+        </div>
+        <p>Catatan SOAP terstruktur per bidang, lengkap dengan checklist pemeriksaan fisik profesional sesuai sistem &amp; metode pemeriksaan (Inspeksi/Palpasi/Perkusi/Auskultasi), serta preview SOAP otomatis siap cetak di bawah setiap form.</p>
+        <span class="home-cta">Buka modul →</span>
+      </button>
+      <button type="button" class="home-card" data-goto="dosis">
+        <div class="home-icon ic-dosis">💊</div>
+        <h3>Hitung Dosis Obat</h3>
+        <div class="home-badges">
+          <span class="home-badge">100+ obat</span>
+          <span class="home-badge">A–Z</span>
+          <span class="home-badge">Termasuk injeksi</span>
+        </div>
+        <p>Kalkulator dosis berbasis berat badan, mencakup banyak obat &amp; merek dagang yang umum tersedia di Indonesia — oral, IV, IM, rektal, hingga sediaan injeksi/infus untuk kondisi emergensi. Klik nama obat untuk langsung menghitung dosis sesuai sediaannya.</p>
+        <span class="home-cta">Buka modul →</span>
+      </button>
+      <button type="button" class="home-card" data-goto="guideline">
+        <div class="home-icon ic-guideline">📘</div>
+        <h3>Guideline 2026</h3>
+        <div class="home-badges">
+          <span class="home-badge">IGD</span>
+          <span class="home-badge">Triase</span>
+          <span class="home-badge">Diagnosis Cepat</span>
+        </div>
+        <p>Ringkasan pendekatan kegawatdaruratan & panduan diagnosis yang umum dipakai di IGD — lengkap dengan ilustrasi alur, sebagai materi bantu cepat. Selalu cross-check dengan pedoman resmi terbaru.</p>
+        <span class="home-cta">Buka modul →</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ SOAP GENERATOR ============ -->
+  <div id="view-soap" class="view">
+    <div class="module-header">
+      <button type="button" class="back-btn" data-goto="home">← Beranda</button>
+      <h2>📋 SOAP Generator</h2>
+    </div>
+    <div class="ptype-nav" id="ptypeNav">
+      <button type="button" class="ptype-btn active" data-ptype="umum">Pasien Umum</button>
+      <button type="button" class="ptype-btn" data-ptype="obgyn">Pasien Obgyn</button>
+      <button type="button" class="ptype-btn" data-ptype="bedah">Pasien Bedah</button>
+      <button type="button" class="ptype-btn" data-ptype="jantung">Pasien Jantung</button>
+    </div>
+    <div id="panel-umum" class="ptype-panel active umum"></div>
+    <div id="panel-obgyn" class="ptype-panel obgyn"></div>
+    <div id="panel-bedah" class="ptype-panel bedah"></div>
+    <div id="panel-jantung" class="ptype-panel jantung"></div>
+  </div>
+
+  <!-- ============ HITUNG DOSIS ============ -->
+  <div id="view-dosis" class="view">
+    <div class="module-header">
+      <button type="button" class="back-btn" data-goto="home">← Beranda</button>
+      <h2>💊 Hitung Dosis Obat</h2>
+    </div>
+    <div class="disclaimer">⚠️ Kalkulator ini adalah alat bantu dokumentasi &amp; edukasi klinis. Selalu verifikasi dosis dengan panduan resmi (IONI, Pedoman IDAI, BNF, formularium rumah sakit), kondisi klinis, fungsi ginjal/hati, serta riwayat alergi pasien sebelum pemberian obat.</div>
+    <div class="bb-bar">
+      <label style="margin-right:-6px;">⚖️ Berat Badan Pasien</label>
+      <input type="number" id="bbInput" placeholder="kg" min="0" step="0.1">
+      <span class="hint">Masukkan berat badan (kg), lalu klik nama obat di bawah untuk melihat dosis sesuai sediaan & mereknya.</span>
+    </div>
+    <div class="dosis-toolbar">
+      <input type="text" id="drugSearch" placeholder="🔍 Cari nama obat (generik) atau merek dagang...">
+      <div class="az-bar" id="azBar"></div>
+      <div id="drugCount"></div>
+    </div>
+    <div id="drugList"></div>
+  </div>
+
+  <!-- ============ GUIDELINE 2026 ============ -->
+  <div id="view-guideline" class="view">
+    <div class="module-header">
+      <button type="button" class="back-btn" data-goto="home">← Beranda</button>
+      <h2>📘 Guideline IGD & Diagnosis 2026</h2>
+    </div>
+    <div class="disclaimer">⚠️ Materi ini adalah ringkasan edukasi internal berbasis pendekatan kegawatdaruratan & literatur kedokteran yang umum diajarkan. Bukan pengganti pedoman resmi — selalu verifikasi & sesuaikan dengan SOP rumah sakit, pedoman organisasi profesi (Kemenkes RI, PERKI, IDAI, PERDOSSI, PAPDI, PDPI, WHO, CDC, dll), dan kondisi klinis pasien terkini.</div>
+    <div class="ptype-nav">
+      <button type="button" class="ptype-btn active" id="glTabIgd" onclick="setGlTab('igd')">🚑 Pendekatan Kegawatdaruratan</button>
+      <button type="button" class="ptype-btn" id="glTabEnsi" onclick="setGlTab('ensi')">📖 Ensiklopedia Diagnosis A–Z</button>
+    </div>
+
+    <div id="glPanel-igd" class="ptype-panel active">
+      <div id="gl-list" class="gl-grid"></div>
+      <div id="gl-detail-wrap"></div>
+    </div>
+
+    <div id="glPanel-ensi" class="ptype-panel">
+      <div class="dosis-toolbar">
+        <input type="text" id="diseaseSearch" placeholder="🔍 Cari nama penyakit/diagnosis...">
+        <div class="az-bar" id="diseaseAzBar"></div>
+        <div id="diseaseCount"></div>
+      </div>
+      <div id="diseaseList"></div>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN: KELOLA MEMBER ============ -->
+  <div id="view-admin" class="view">
+    <div class="module-header">
+      <button type="button" class="back-btn" data-goto="home">← Beranda</button>
+      <h2>🛠️ Kelola Member</h2>
+    </div>
+    <div class="card">
+      <h2>Tambah Member Baru</h2>
+      <div class="admin-form">
+        <div class="field"><label>Nama</label><input type="text" id="newMemberName" placeholder="Nama lengkap"></div>
+        <div class="field"><label>Username</label><input type="text" id="newMemberUser" placeholder="username"></div>
+        <div class="field"><label>Password</label><input type="text" id="newMemberPass" placeholder="password"></div>
+        <button type="button" class="btn btn-primary" onclick="addMember()">+ Tambah Member</button>
+      </div>
+      <div class="status-msg" id="adminStatus"></div>
+    </div>
+    <div class="card">
+      <h2>Daftar Member</h2>
+      <table class="member-table">
+        <thead><tr><th>Nama</th><th>Username</th><th>Password</th><th>Dibuat</th><th></th></tr></thead>
+        <tbody id="memberTableBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Ganti Password Admin</h2>
+      <div class="admin-form">
+        <div class="field"><label>Password Admin Baru</label><input type="text" id="newAdminPass" placeholder="password baru"></div>
+        <button type="button" class="btn btn-primary" onclick="changeAdminPass()">Simpan</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Dibuat untuk dokumentasi klinis internal — selalu sesuaikan dengan kondisi klinis pasien dan kebijakan instalasi/RS setempat.</footer>
+
+</div><!-- /app-shell -->
+
+<script>
+/* ====================================================================
+   AUTENTIKASI & KELOLA MEMBER (disimpan lokal di browser - localStorage)
+==================================================================== */
+const LS_ADMIN = 'dokterapp_admin';
+
+/* Keamanan: escape semua teks yang berasal dari input pengguna (username, nama member, dll)
+   sebelum disisipkan ke innerHTML, untuk mencegah serangan XSS (Cross-Site Scripting). */
+function escapeHtml(str){
+  return String(str==null?'':str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+const LS_MEMBERS = 'dokterapp_members';
+const LS_SESSION = 'dokterapp_session';
+
+function initAuthData(){
+  if(!localStorage.getItem(LS_ADMIN)){
+    localStorage.setItem(LS_ADMIN, JSON.stringify({username:'admin', password:'admin123'}));
+  }
+  if(!localStorage.getItem(LS_MEMBERS)){
+    localStorage.setItem(LS_MEMBERS, JSON.stringify([]));
+  }
+}
+function getAdmin(){ return JSON.parse(localStorage.getItem(LS_ADMIN)); }
+function getMembers(){ return JSON.parse(localStorage.getItem(LS_MEMBERS)||'[]'); }
+function saveMembers(list){ localStorage.setItem(LS_MEMBERS, JSON.stringify(list)); }
+function currentUser(){
+  try{ return JSON.parse(localStorage.getItem(LS_SESSION)) || {role:null}; }
+  catch(e){ return {role:null}; }
+}
+function setSession(user){ localStorage.setItem(LS_SESSION, JSON.stringify(user)); }
+function clearSession(){ localStorage.removeItem(LS_SESSION); }
+
+let loginRole = 'member';
+document.getElementById('tabMember').addEventListener('click', ()=>{
+  loginRole='member';
+  document.getElementById('tabMember').classList.add('active');
+  document.getElementById('tabAdmin').classList.remove('active');
+  document.getElementById('loginHint').style.display='';
+  hideLoginError();
+});
+document.getElementById('tabAdmin').addEventListener('click', ()=>{
+  loginRole='admin';
+  document.getElementById('tabAdmin').classList.add('active');
+  document.getElementById('tabMember').classList.remove('active');
+  document.getElementById('loginHint').style.display='';
+  hideLoginError();
+});
+function hideLoginError(){
+  const el=document.getElementById('loginError');
+  el.classList.remove('show'); el.textContent='';
+}
+function showLoginError(msg){
+  const el=document.getElementById('loginError');
+  el.textContent=msg; el.classList.add('show');
+}
+
+document.getElementById('loginSubmitBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+function doLogin(){
+  hideLoginError();
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  if(!u || !p){ showLoginError('Username & password wajib diisi.'); return; }
+
+  if(loginRole==='admin'){
+    const admin = getAdmin();
+    if(u===admin.username && p===admin.password){
+      setSession({role:'admin', username:u, name:'Administrator'});
+      enterApp();
+      return;
+    }
+    showLoginError('Username atau password admin salah.');
+    return;
+  }
+
+  const members = getMembers();
+  const found = members.find(m=>m.username===u && m.password===p);
+  if(found){
+    setSession({role:'member', username:found.username, name:found.name});
+    enterApp();
+    return;
+  }
+  showLoginError('Username atau password member salah, atau akun belum didaftarkan oleh admin.');
+}
+
+function enterApp(){
+  const user = currentUser();
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('appShell').classList.add('active');
+  document.getElementById('navAdminBtn').style.display = user.role==='admin' ? '' : 'none';
+  document.getElementById('topbarUser').innerHTML = `
+    <span class="role-pill ${user.role==='admin'?'admin':'member'}">${user.role==='admin'?'👑 Admin':'🧑‍⚕️ Member'}</span>
+    <span style="font-size:.82rem;font-weight:700;color:#fff;">${escapeHtml(user.name||user.username)}</span>
+    <button type="button" class="logout-btn" onclick="doLogout()">Keluar</button>
+  `;
+  const greet = document.getElementById('homeGreeting');
+  if(greet) greet.textContent = `Selamat datang, ${user.name||user.username} 👋`;
+  setView('home');
+}
+function doLogout(){
+  clearSession();
+  document.getElementById('appShell').classList.remove('active');
+  document.getElementById('loginWrap').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  hideLoginError();
+}
+
+/* ----- Admin: kelola member ----- */
+function addMember(){
+  const name = document.getElementById('newMemberName').value.trim().slice(0,60);
+  const username = document.getElementById('newMemberUser').value.trim().slice(0,40);
+  const password = document.getElementById('newMemberPass').value.slice(0,100);
+  const statusEl = document.getElementById('adminStatus');
+  statusEl.className='status-msg';
+
+  if(!name || !username || !password){
+    statusEl.textContent='Nama, username, dan password wajib diisi.';
+    statusEl.classList.add('err'); return;
+  }
+  if(!/^[A-Za-z0-9_.]{3,40}$/.test(username)){
+    statusEl.textContent='Username hanya boleh huruf, angka, titik, atau garis bawah (min. 3 karakter).';
+    statusEl.classList.add('err'); return;
+  }
+  if(password.length < 6){
+    statusEl.textContent='Password minimal 6 karakter.';
+    statusEl.classList.add('err'); return;
+  }
+  const members = getMembers();
+  if(members.some(m=>m.username.toLowerCase()===username.toLowerCase()) || username.toLowerCase()===getAdmin().username.toLowerCase()){
+    statusEl.textContent='Username sudah dipakai, gunakan username lain.';
+    statusEl.classList.add('err'); return;
+  }
+  members.push({name, username, password, created: new Date().toLocaleDateString('id-ID')});
+  saveMembers(members);
+  document.getElementById('newMemberName').value='';
+  document.getElementById('newMemberUser').value='';
+  document.getElementById('newMemberPass').value='';
+  statusEl.textContent=`Member "${name}" berhasil ditambahkan.`;
+  statusEl.classList.add('ok');
+  renderMemberTable();
+}
+function deleteMember(username){
+  if(!confirm(`Hapus member "${username}"?`)) return;
+  saveMembers(getMembers().filter(m=>m.username!==username));
+  renderMemberTable();
+}
+function renderMemberTable(){
+  const members = getMembers();
+  const tbody = document.getElementById('memberTableBody');
+  if(!members.length){
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--muted);text-align:center;">Belum ada member. Tambahkan lewat form di atas.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = members.map(m=>`
+    <tr>
+      <td>${escapeHtml(m.name)}</td>
+      <td>${escapeHtml(m.username)}</td>
+      <td>${escapeHtml(m.password)}</td>
+      <td>${escapeHtml(m.created||'-')}</td>
+      <td><button type="button" class="del-btn" data-del-username="${escapeHtml(m.username)}">Hapus</button></td>
+    </tr>`).join('');
+}
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.del-btn[data-del-username]');
+  if(btn) deleteMember(btn.dataset.delUsername);
+});
+function changeAdminPass(){
+  const np = document.getElementById('newAdminPass').value;
+  if(!np){ alert('Isi password baru terlebih dahulu.'); return; }
+  const admin = getAdmin();
+  admin.password = np;
+  localStorage.setItem(LS_ADMIN, JSON.stringify(admin));
+  document.getElementById('newAdminPass').value='';
+  alert('Password admin berhasil diperbarui.');
+}
+
+initAuthData();
+(function checkExistingSession(){
+  const user = currentUser();
+  if(user.role==='admin' || user.role==='member') enterApp();
+})();
+
+/* ====================================================================
+   NAVIGASI UTAMA
+==================================================================== */
+function setGlTab(tab){
+  document.getElementById('glTabIgd').classList.toggle('active', tab==='igd');
+  document.getElementById('glTabEnsi').classList.toggle('active', tab==='ensi');
+  document.getElementById('glPanel-igd').classList.toggle('active', tab==='igd');
+  document.getElementById('glPanel-ensi').classList.toggle('active', tab==='ensi');
+  if(tab==='ensi' && !document.getElementById('diseaseList').dataset.built){
+    buildDiseaseUI();
+    document.getElementById('diseaseList').dataset.built='1';
+  }
+}
+
+/* ====================================================================
+   ENSIKLOPEDIA DIAGNOSIS A–Z — materi ringkas per penyakit
+   (definisi, gejala kunci, pendekatan diagnosis, prinsip tata laksana)
+   Sumber dicantumkan per entri — selalu cross-check pedoman resmi terbaru.
+==================================================================== */
+const DISEASE_CAT_COLORS = {
+  "Penyakit Dalam":"#1f6f8b","Infeksi & Tropis":"#0e8a6d","Respirasi":"#2f9e8f","Jantung & Pembuluh Darah":"#c0392b",
+  "Saraf":"#6a5acd","Saluran Cerna":"#3b6ea5","Ginjal & Saluran Kemih":"#8a5fbf","Kulit":"#b8862e",
+  "THT & Mata":"#a1467c","Obstetri & Ginekologi":"#a1467c","Bedah & Trauma":"#b8862e","Endokrin & Metabolik":"#c0772e",
+  "Anak":"#5a9216","Psikiatri":"#6a5acd","Hematologi & Imunologi":"#0e8a6d"
+};
+function dCatColor(cat){ return DISEASE_CAT_COLORS[cat] || '#5a6b75'; }
+
+const DISEASES = [
+{name:"Asma Bronkial",cat:"Respirasi",
+ definisi:"Penyakit inflamasi kronik saluran napas dengan hiperreaktivitas bronkus, menyebabkan episode obstruksi jalan napas reversibel.",
+ gejala:["Sesak napas episodik, terutama malam/dini hari atau setelah pajanan pencetus","Mengi (wheezing)","Batuk kronik berulang, sering memberat malam hari","Rasa berat di dada","Gejala dipicu alergen, udara dingin, aktivitas fisik, infeksi virus"],
+ diagnosis:["Anamnesis riwayat gejala episodik & faktor pencetus, riwayat atopi/keluarga","Auskultasi: wheezing ekspirasi","Spirometri: obstruksi reversibel (peningkatan FEV1 ≥12% pasca bronkodilator) bila tersedia","Peak flow meter untuk pemantauan variabilitas"],
+ tatalaksana:["Bronkodilator kerja cepat (SABA/agonis beta-2) untuk serangan akut","Kortikosteroid inhalasi sebagai kontroler pada asma persisten","Edukasi teknik inhalasi & penghindaran pencetus","Nilai derajat serangan akut (ringan/sedang/berat/mengancam jiwa) untuk eskalasi terapi"],
+ sumber:"GINA (Global Initiative for Asthma) Report terkini; Perhimpunan Dokter Paru Indonesia (PDPI)."},
+{name:"Anemia Defisiensi Besi",cat:"Hematologi & Imunologi",
+ definisi:"Anemia akibat kekurangan zat besi sebagai bahan pembentuk hemoglobin, penyebab anemia tersering secara global.",
+ gejala:["Lemas, mudah lelah, pucat","Pusing, sesak saat aktivitas","Pica (keinginan makan benda non-makanan) pada kasus berat","Koilonikia (kuku sendok) pada kasus kronik berat"],
+ diagnosis:["Darah lengkap: Hb rendah, MCV/MCH rendah (mikrositik hipokrom)","Profil besi: serum iron rendah, ferritin rendah, TIBC meningkat","Cari sumber kehilangan darah kronik (saluran cerna, menstruasi berlebih)"],
+ tatalaksana:["Suplementasi besi oral, edukasi efek samping (konstipasi, feses gelap)","Tangani penyebab dasar (sumber perdarahan)","Evaluasi respons terapi dengan darah lengkap ulang setelah beberapa minggu","Transfusi pada anemia berat simptomatik"],
+ sumber:"WHO Guideline on Iron Supplementation; Perhimpunan Hematologi dan Transfusi Darah Indonesia (PHTDI)."},
+{name:"Bronkitis Akut",cat:"Respirasi",
+ definisi:"Inflamasi akut bronkus, umumnya disebabkan infeksi virus, ditandai batuk sebagai gejala utama.",
+ gejala:["Batuk berdahak/kering >5 hari","Dapat disertai demam ringan","Nyeri dada saat batuk","Umumnya self-limited dalam 1-3 minggu"],
+ diagnosis:["Diagnosis klinis berdasar anamnesis & pemeriksaan fisik","Singkirkan pneumonia (tidak ada tanda konsolidasi, demam tinggi persisten, takipnea)","Rontgen toraks bila curiga pneumonia/etiologi lain"],
+ tatalaksana:["Terapi suportif: hidrasi, istirahat","Antitusif/mukolitik sesuai kebutuhan simptomatik","Antibiotik TIDAK rutin diberikan karena mayoritas etiologi viral","Edukasi tanda bahaya yang perlu kontrol ulang"],
+ sumber:"NICE Guideline — Cough (acute): antimicrobial prescribing; PDPI."},
+{name:"Cellulitis (Selulitis)",cat:"Kulit",
+ definisi:"Infeksi bakteri akut pada kulit & jaringan subkutan, umumnya disebabkan Streptococcus/Staphylococcus.",
+ gejala:["Eritema, edema, hangat, nyeri tekan pada area terinfeksi","Batas tidak tegas","Dapat disertai demam & limfangitis","Faktor risiko: luka terbuka, edema kronik, diabetes"],
+ diagnosis:["Diagnosis klinis berdasar tampilan lesi & gejala sistemik","Pertimbangkan kultur bila ada pus/luka terbuka, atau pada kasus berat/tidak respons terapi","Singkirkan diferensial: DVT, dermatitis kontak, erisipelas"],
+ tatalaksana:["Antibiotik empiris sesuai patogen tersering (lihat modul Hitung Dosis)","Elevasi ekstremitas yang terkena, kontrol nyeri","Tandai batas eritema untuk pantau perkembangan","Rawat inap & antibiotik IV pada tanda sistemik berat/tidak respons oral"],
+ sumber:"IDSA Practice Guidelines for Skin and Soft Tissue Infections."},
+{name:"Demam Berdarah Dengue (DBD)",cat:"Infeksi & Tropis",
+ definisi:"Infeksi virus dengue melalui vektor nyamuk Aedes, dapat berkembang menjadi kebocoran plasma & syok.",
+ gejala:["Demam tinggi mendadak 2-7 hari","Nyeri kepala, retro-orbital, mialgia/artralgia berat","Ruam, ptekie, manifestasi perdarahan ringan-berat","Tanda bahaya: nyeri perut hebat, muntah persisten, letargi, perdarahan mukosa, penurunan trombosit cepat"],
+ diagnosis:["Darah lengkap serial: trombositopenia, peningkatan hematokrit (hemokonsentrasi)","NS1 antigen (fase awal) atau IgM/IgG dengue (fase lanjut)","Pemantauan tanda kebocoran plasma: efusi pleura, asites, penurunan tekanan nadi"],
+ tatalaksana:["Terapi suportif: hidrasi oral/IV sesuai fase & derajat","Pemantauan ketat tanda syok dengue (kategori sesuai WHO)","Hindari NSAID/aspirin (risiko perdarahan)","Resusitasi cairan terstruktur pada dengue dengan tanda bahaya/syok"],
+ sumber:"WHO — Dengue Guidelines for Diagnosis, Treatment, Prevention and Control; Kemenkes RI PNPK Demam Berdarah Dengue."},
+{name:"Diabetes Melitus Tipe 2",cat:"Endokrin & Metabolik",
+ definisi:"Gangguan metabolik kronik dengan hiperglikemia akibat resistensi insulin dan/atau defisiensi insulin relatif.",
+ gejala:["Poliuria, polidipsia, polifagia","Penurunan berat badan tanpa sebab jelas","Kesemutan/neuropati, penglihatan kabur","Sering asimtomatik pada fase awal, terdeteksi skrining"],
+ diagnosis:["Gula darah puasa ≥126 mg/dL, atau gula darah sewaktu ≥200mg/dL dengan gejala klasik","HbA1c ≥6.5%","Tes toleransi glukosa oral bila diperlukan konfirmasi"],
+ tatalaksana:["Modifikasi gaya hidup: diet, aktivitas fisik, edukasi","Metformin sebagai lini pertama umumnya (lihat modul Hitung Dosis)","Pemantauan komplikasi mikro/makrovaskular berkala","Eskalasi terapi (kombinasi oral/insulin) sesuai target HbA1c individual"],
+ sumber:"PERKENI — Pedoman Pengelolaan dan Pencegahan Diabetes Melitus Tipe 2 di Indonesia; ADA Standards of Care."},
+{name:"Epilepsi",cat:"Saraf",
+ definisi:"Gangguan neurologis kronik dengan kecenderungan kejang berulang akibat aktivitas elektrik abnormal otak.",
+ gejala:["Kejang berulang (fokal/umum, dengan/tanpa penurunan kesadaran)","Aura sebelum kejang pada beberapa kasus","Periode postiktal: bingung, lelah, sakit kepala"],
+ diagnosis:["Anamnesis rinci karakteristik & frekuensi kejang dari saksi","EEG untuk identifikasi aktivitas epileptiform","MRI/CT kepala untuk cari lesi struktural penyebab","Singkirkan diferensial: sinkop, kejang psikogenik non-epileptik"],
+ tatalaksana:["Obat antiepilepsi sesuai jenis kejang & profil pasien","Edukasi keselamatan (hindari aktivitas berisiko saat kejang tidak terkontrol)","Pemantauan efek samping & kepatuhan obat","Evaluasi berkala untuk pertimbangan penurunan dosis/penghentian bila bebas kejang lama"],
+ sumber:"ILAE (International League Against Epilepsy) Guidelines; PERDOSSI — Pedoman Tatalaksana Epilepsi."},
+{name:"Faringitis Akut",cat:"THT & Mata",
+ definisi:"Inflamasi akut faring, mayoritas disebabkan virus, sebagian oleh bakteri (Streptococcus grup A).",
+ gejala:["Nyeri tenggorokan, nyeri menelan","Demam, dapat disertai pembesaran KGB leher","Faring hiperemis, eksudat tonsil pada kasus bakterial"],
+ diagnosis:["Skor Centor/McIsaac untuk estimasi probabilitas faringitis streptokokus","Rapid antigen test atau kultur tenggorok bila tersedia & diindikasikan","Diagnosis klinis pada mayoritas kasus viral"],
+ tatalaksana:["Terapi suportif untuk kasus viral: analgesik, hidrasi, kumur air garam","Antibiotik hanya pada kecurigaan/kepastian etiologi streptokokus (cegah komplikasi demam rematik)","Edukasi tanda bahaya: sulit menelan/bernapas, abses peritonsilar"],
+ sumber:"IDSA Guideline for Group A Streptococcal Pharyngitis."},
+{name:"GERD (Gastroesophageal Reflux Disease)",cat:"Saluran Cerna",
+ definisi:"Refluks isi lambung ke esofagus yang menimbulkan gejala mengganggu atau komplikasi.",
+ gejala:["Rasa terbakar di dada (heartburn), terutama setelah makan/berbaring","Regurgitasi asam","Disfagia, nyeri dada non-kardiak","Gejala ekstraesofageal: batuk kronik, suara serak"],
+ diagnosis:["Diagnosis klinis berdasar gejala tipikal","Endoskopi pada gejala alarm (disfagia progresif, penurunan berat badan, anemia, usia tua onset baru)","pH monitoring esofagus pada kasus atipikal/refrakter"],
+ tatalaksana:["Modifikasi gaya hidup: hindari makan besar sebelum tidur, elevasi kepala tempat tidur","Penghambat pompa proton (PPI) sebagai terapi lini pertama","Evaluasi ulang bila tidak respons terapi adekuat","Pertimbangkan endoskopi/rujukan pada kasus refrakter"],
+ sumber:"American College of Gastroenterology (ACG) Guidelines for GERD."},
+{name:"Hipertensi",cat:"Jantung & Pembuluh Darah",
+ definisi:"Peningkatan tekanan darah persisten di atas ambang normal, faktor risiko utama penyakit kardiovaskular & ginjal.",
+ gejala:["Umumnya asimtomatik (silent killer)","Nyeri kepala, pusing pada tekanan sangat tinggi","Dapat terdeteksi saat pemeriksaan rutin atau komplikasi organ target"],
+ diagnosis:["Pengukuran tekanan darah berulang pada kunjungan berbeda","Klasifikasi derajat hipertensi sesuai ambang yang berlaku","Evaluasi kerusakan organ target: jantung, ginjal, retina, pembuluh darah"],
+ tatalaksana:["Modifikasi gaya hidup: diet rendah garam, aktivitas fisik, berhenti merokok","Terapi farmakologis sesuai kelas obat & komorbiditas (lihat modul Hitung Dosis)","Target tekanan darah individual sesuai usia & komorbid","Pemantauan rutin & evaluasi komplikasi"],
+ sumber:"Perhimpunan Dokter Hipertensi Indonesia (InaSH); ESC/ESH Guidelines for Hypertension."},
+{name:"Hepatitis B",cat:"Infeksi & Tropis",
+ definisi:"Infeksi virus hepatitis B yang dapat menyebabkan hepatitis akut atau kronik dengan risiko sirosis & kanker hati.",
+ gejala:["Fase akut: lemas, mual, ikterik, nyeri perut kanan atas","Banyak kasus kronik asimtomatik bertahun-tahun","Tanda sirosis pada kasus lanjut: asites, varises, ensefalopati"],
+ diagnosis:["Serologi: HBsAg, anti-HBs, anti-HBc, HBeAg/anti-HBe","HBV DNA kuantitatif untuk menilai aktivitas replikasi","Fungsi hati (SGOT/SGPT), USG/fibroscan untuk menilai derajat fibrosis"],
+ tatalaksana:["Pemantauan berkala pada karier inaktif","Terapi antivirus pada kasus dengan replikasi aktif & kerusakan hati signifikan","Vaksinasi kontak dekat yang belum terinfeksi/divaksin","Skrining berkala karsinoma hepatoseluler pada kelompok risiko tinggi"],
+ sumber:"WHO Guidelines for the Prevention, Care and Treatment of Hepatitis B; PPHI (Perhimpunan Peneliti Hati Indonesia)."},
+{name:"Infeksi Saluran Kemih (ISK)",cat:"Ginjal & Saluran Kemih",
+ definisi:"Infeksi bakteri pada saluran kemih, dapat mengenai kandung kemih (sistitis) atau ginjal (pielonefritis).",
+ gejala:["Disuria, frekuensi & urgensi berkemih","Nyeri suprapubik (sistitis)","Demam, nyeri pinggang, mual/muntah (curiga pielonefritis)"],
+ diagnosis:["Urinalisis: leukosit esterase/nitrit positif, leukosituria","Kultur urin & sensitivitas terutama pada kasus berulang/komplikata","Pencitraan (USG) bila curiga komplikasi/obstruksi"],
+ tatalaksana:["Antibiotik empiris sesuai pola resistensi lokal (lihat modul Hitung Dosis)","Hidrasi adekuat","Evaluasi & atasi faktor predisposisi (batu, kateter, residu urin)","Rawat & antibiotik IV pada pielonefritis dengan tanda sistemik berat"],
+ sumber:"IDSA/European Association of Urology (EAU) Guidelines on Urological Infections."},
+{name:"Influenza",cat:"Infeksi & Tropis",
+ definisi:"Infeksi saluran napas akut oleh virus influenza, dapat menimbulkan gejala sistemik signifikan.",
+ gejala:["Demam mendadak, menggigil","Mialgia, sakit kepala, lemas menonjol","Batuk, nyeri tenggorokan, kongesti nasal","Pada kasus berat: sesak, tanda pneumonia"],
+ diagnosis:["Diagnosis klinis pada musim epidemi","Rapid antigen test/PCR influenza bila tersedia & relevan secara klinis","Singkirkan diferensial: COVID-19, infeksi bakteri sekunder"],
+ tatalaksana:["Terapi suportif: istirahat, hidrasi, antipiretik","Antivirus (oseltamivir, dll) pada kasus berisiko tinggi/berat, idealnya dalam 48 jam onset","Waspadai tanda pneumonia/komplikasi pada kelompok risiko (lansia, komorbid, ibu hamil)"],
+ sumber:"WHO Guidelines for Pharmacological Management of Influenza; CDC Influenza Antiviral Guidance."},
+{name:"Jantung Koroner (Penyakit Jantung Koroner Kronik)",cat:"Jantung & Pembuluh Darah",
+ definisi:"Penyempitan arteri koroner akibat aterosklerosis yang mengganggu suplai darah ke otot jantung.",
+ gejala:["Angina: nyeri/rasa tertekan dada saat aktivitas, berkurang dengan istirahat","Sesak napas saat aktivitas","Dapat asimtomatik (silent ischemia) terutama pada diabetes"],
+ diagnosis:["EKG istirahat & saat gejala","Uji latih jantung (treadmill) atau pencitraan stres bila tersedia","Angiografi koroner pada kecurigaan tinggi/sebelum tindakan intervensi","Profil risiko kardiovaskular & lipid"],
+ tatalaksana:["Modifikasi faktor risiko: berhenti merokok, kontrol tekanan darah, lipid, gula darah","Terapi antiplatelet, statin, obat anti-angina sesuai indikasi (lihat modul Hitung Dosis)","Pertimbangkan revaskularisasi (PCI/CABG) sesuai keparahan & anatomi","Rehabilitasi jantung & edukasi gaya hidup"],
+ sumber:"ESC Guidelines for Chronic Coronary Syndromes; PERKI — Pedoman Tatalaksana Penyakit Jantung Koroner."},
+{name:"Ketoasidosis Diabetik (KAD)",cat:"Endokrin & Metabolik",
+ definisi:"Komplikasi akut diabetes berupa hiperglikemia, asidosis metabolik, dan ketosis akibat defisiensi insulin berat.",
+ gejala:["Poliuria, polidipsia memberat","Mual, muntah, nyeri perut","Napas cepat & dalam (Kussmaul), bau aseton","Penurunan kesadaran pada kasus berat"],
+ diagnosis:["Gula darah tinggi, keton darah/urin positif","Analisis gas darah: asidosis metabolik dengan anion gap meningkat","Elektrolit (kalium dapat awalnya normal/tinggi meski defisit total tinggi)"],
+ tatalaksana:["Resusitasi cairan IV agresif sesuai derajat dehidrasi","Insulin IV kontinu dengan pemantauan gula darah berkala","Koreksi elektrolit (terutama kalium) sebelum/bersamaan insulin","Cari & atasi faktor pencetus (infeksi, ketidakpatuhan terapi)"],
+ sumber:"ADA Hyperglycemic Crises Consensus Statement; PERKENI."},
+{name:"Kolelitiasis (Batu Kandung Empedu)",cat:"Saluran Cerna",
+ definisi:"Pembentukan batu di kandung empedu, dapat asimtomatik atau menimbulkan kolik bilier.",
+ gejala:["Nyeri kolik perut kanan atas, dapat menjalar ke punggung/bahu","Memberat setelah makan berlemak","Mual, muntah","Ikterik bila batu menyumbat duktus koledokus"],
+ diagnosis:["USG abdomen sebagai modalitas utama (sensitivitas tinggi untuk batu kandung empedu)","Fungsi hati & amilase/lipase bila curiga komplikasi (kolangitis, pankreatitis)","Pemeriksaan fisik: Murphy sign positif pada kolesistitis"],
+ tatalaksana:["Kolelitiasis asimtomatik umumnya observasi","Kolesistektomi elektif pada kasus simptomatik berulang","Tata laksana segera pada komplikasi (kolesistitis akut, kolangitis, pankreatitis bilier)","Analgesik & antiemetik untuk kontrol gejala kolik"],
+ sumber:"World Gastroenterology Organisation (WGO) Guidelines on Gallstone Disease."},
+{name:"Leptospirosis",cat:"Infeksi & Tropis",
+ definisi:"Infeksi bakteri Leptospira, ditularkan melalui kontak air/tanah terkontaminasi urin hewan terinfeksi (terutama tikus).",
+ gejala:["Demam mendadak, mialgia berat (terutama betis)","Nyeri kepala, injeksi konjungtiva","Ikterik & gangguan ginjal pada kasus berat (Weil's disease)","Riwayat kontak air banjir/lumpur"],
+ diagnosis:["Anamnesis riwayat pajanan (banjir, pekerjaan berisiko)","Serologi (MAT/ELISA) atau PCR sesuai fase & ketersediaan","Fungsi ginjal & hati untuk identifikasi keterlibatan organ"],
+ tatalaksana:["Antibiotik (penisilin/doksisiklin dll) sesuai berat ringan kasus (lihat modul Hitung Dosis)","Terapi suportif: hidrasi, pemantauan fungsi ginjal/hati","Dialisis pada gagal ginjal akut berat","Kewaspadaan & edukasi pencegahan pajanan ulang"],
+ sumber:"WHO — Human Leptospirosis: Guidance for Diagnosis, Surveillance and Control; Kemenkes RI."},
+{name:"Migrain",cat:"Saraf",
+ definisi:"Nyeri kepala primer berulang, sering unilateral, berdenyut, dengan gejala penyerta khas.",
+ gejala:["Nyeri kepala unilateral berdenyut, intensitas sedang-berat","Mual/muntah, fotofobia, fonofobia","Dapat didahului aura (gangguan visual/sensorik) pada sebagian pasien","Durasi serangan 4-72 jam bila tidak diobati"],
+ diagnosis:["Diagnosis klinis berdasar kriteria (mis. ICHD) & pola serangan berulang","Pencitraan otak hanya bila ada tanda bahaya (onset baru usia tua, defisit neurologis fokal, perubahan pola tiba-tiba)","Buku catatan nyeri kepala untuk identifikasi pencetus"],
+ tatalaksana:["Terapi abortif saat serangan: analgesik, triptan sesuai indikasi","Terapi preventif pada serangan frekuen/mengganggu aktivitas","Identifikasi & hindari pencetus (kurang tidur, stres, makanan tertentu)","Edukasi penggunaan analgesik berlebihan (risiko nyeri kepala akibat obat)"],
+ sumber:"International Headache Society — ICHD-3 Criteria; PERDOSSI — Konsensus Nasional Migrain."},
+{name:"Meningitis Bakterial",cat:"Saraf",
+ definisi:"Infeksi bakteri pada selaput otak (meningen), kondisi gawat darurat neurologis dengan mortalitas tinggi bila terlambat ditangani.",
+ gejala:["Trias klasik: demam, nyeri kepala, kaku kuduk","Fotofobia, penurunan kesadaran","Ruam petekie pada meningitis meningokokus","Kejang dapat terjadi"],
+ diagnosis:["Pemeriksaan tanda rangsang meningeal (Kernig, Brudzinski)","Pungsi lumbal untuk analisis cairan serebrospinal (bila tidak ada kontraindikasi)","Kultur darah & CSS untuk identifikasi patogen","CT kepala sebelum pungsi lumbal bila ada tanda peningkatan tekanan intrakranial"],
+ tatalaksana:["Antibiotik empiris segera tanpa menunggu hasil kultur (lihat modul Hitung Dosis)","Deksametason adjuvan pada kasus tertentu sesuai bukti","Tata laksana suportif ICU pada kasus berat","Profilaksis kontak dekat pada etiologi meningokokus"],
+ sumber:"IDSA Practice Guidelines for Bacterial Meningitis; WHO."},
+{name:"Nefrolitiasis (Batu Ginjal)",cat:"Ginjal & Saluran Kemih",
+ definisi:"Pembentukan batu di saluran kemih bagian atas, menyebabkan nyeri kolik karakteristik saat batu bermigrasi.",
+ gejala:["Nyeri kolik pinggang menjalar ke selangkangan, hilang timbul hebat","Hematuria mikroskopik/makroskopik","Mual, muntah","Disuria bila batu di ureter distal/buli"],
+ diagnosis:["Urinalisis: hematuria","CT scan tanpa kontras sebagai modalitas baku emas, atau USG sebagai alternatif (terutama ibu hamil)","Evaluasi fungsi ginjal & tanda obstruksi/infeksi"],
+ tatalaksana:["Analgesik adekuat (NSAID/opioid sesuai kebutuhan)","Hidrasi, observasi untuk batu kecil yang berpotensi keluar spontan","Tindakan urologi (ESWL, ureteroskopi, dll) pada batu besar/obstruksi persisten/infeksi","Evaluasi metabolik pada kasus berulang untuk pencegahan"],
+ sumber:"European Association of Urology (EAU) Guidelines on Urolithiasis."},
+{name:"Otitis Media Akut",cat:"THT & Mata",
+ definisi:"Infeksi akut telinga tengah, sering terjadi pada anak, umumnya menyertai/menyusul infeksi saluran napas atas.",
+ gejala:["Nyeri telinga (otalgia), terutama pada anak ditandai rewel/menarik telinga","Demam","Penurunan pendengaran sementara","Dapat disertai keluar cairan bila membran timpani perforasi"],
+ diagnosis:["Otoskopi: membran timpani hiperemis, menonjol, atau perforasi dengan sekret","Riwayat infeksi saluran napas atas sebelumnya","Singkirkan otitis eksterna & kondisi lain"],
+ tatalaksana:["Analgesik/antipiretik untuk kontrol nyeri & demam","Observasi pada kasus ringan tertentu (watchful waiting) sesuai usia & keparahan","Antibiotik pada indikasi (usia muda, gejala berat, tidak perbaikan)","Edukasi tanda komplikasi: mastoiditis, perforasi menetap"],
+ sumber:"American Academy of Pediatrics (AAP) Clinical Practice Guideline — Acute Otitis Media."},
+{name:"Pneumonia Komunitas",cat:"Respirasi",
+ definisi:"Infeksi akut parenkim paru yang didapat di luar lingkungan rumah sakit, penyebab umum rawat inap & kematian akibat infeksi.",
+ gejala:["Demam, batuk berdahak","Sesak napas, nyeri dada pleuritik","Takipnea, dapat disertai tanda sepsis pada kasus berat"],
+ diagnosis:["Auskultasi: ronkhi/suara napas bronkial fokal, redup pada perkusi area konsolidasi","Rontgen toraks: infiltrat/konsolidasi","Skor keparahan (mis. CURB-65) untuk menentukan rawat jalan/inap/ICU"],
+ tatalaksana:["Antibiotik empiris sesuai skor keparahan & faktor risiko (lihat modul Hitung Dosis)","Oksigen suplementasi bila hipoksia","Terapi suportif: hidrasi, antipiretik","Evaluasi ulang respons terapi 48-72 jam"],
+ sumber:"PDPI — Pedoman Diagnosis dan Penatalaksanaan Pneumonia Komunitas; IDSA/ATS Guidelines."},
+{name:"Pre-eklampsia",cat:"Obstetri & Ginekologi",
+ definisi:"Gangguan kehamilan ditandai hipertensi baru onset setelah usia gestasi 20 minggu disertai proteinuria atau disfungsi organ lain.",
+ gejala:["Tekanan darah ≥140/90mmHg pada kehamilan ≥20 minggu","Proteinuria, edema wajah/tungkai","Nyeri kepala berat, gangguan penglihatan, nyeri ulu hati (tanda berat)"],
+ diagnosis:["Pengukuran tekanan darah berulang & proteinuria (dipstick/rasio protein-kreatinin)","Pemeriksaan laboratorium: fungsi hati, ginjal, trombosit (cari tanda preeklampsia berat/HELLP)","Pemantauan janin (DJJ, USG pertumbuhan)"],
+ tatalaksana:["MgSO4 untuk profilaksis/terapi kejang pada preeklampsia berat (lihat modul Hitung Dosis)","Antihipertensi sesuai target pada hipertensi berat","Pertimbangkan waktu & cara persalinan berdasar usia gestasi & keparahan","Pemantauan ketat ibu & janin, rujukan fasilitas yang sesuai"],
+ sumber:"WHO Recommendations on Prevention and Treatment of Pre-eclampsia; POGI — Pedoman Nasional Pelayanan Kedokteran Preeklampsia."},
+{name:"PPOK (Penyakit Paru Obstruktif Kronik)",cat:"Respirasi",
+ definisi:"Penyakit paru kronik progresif dengan obstruksi jalan napas tidak sepenuhnya reversibel, umumnya terkait riwayat merokok.",
+ gejala:["Sesak napas progresif, terutama saat aktivitas","Batuk kronik berdahak","Eksaserbasi: perburukan akut sesak/batuk/sputum"],
+ diagnosis:["Spirometri: rasio FEV1/FVC <0.7 pasca bronkodilator","Klasifikasi keparahan berdasar nilai FEV1 & gejala/eksaserbasi","Rontgen toraks untuk singkirkan diferensial/komplikasi"],
+ tatalaksana:["Berhenti merokok sebagai intervensi paling penting","Bronkodilator kerja panjang sebagai terapi rutin","Kortikosteroid inhalasi pada kelompok tertentu (eksaserbasi sering)","Tata laksana eksaserbasi akut: bronkodilator, kortikosteroid sistemik, antibiotik bila indikasi, oksigen terkontrol"],
+ sumber:"GOLD (Global Initiative for Chronic Obstructive Lung Disease) Report; PDPI."},
+{name:"Rabies",cat:"Infeksi & Tropis",
+ definisi:"Infeksi virus akut fatal pada sistem saraf pusat, ditularkan melalui gigitan/cakaran hewan terinfeksi (anjing, kucing, kera).",
+ gejala:["Gejala prodromal: demam, nyeri/parestesia di lokasi gigitan","Fase neurologis: agitasi, hidrofobia, aerofobia, kejang","Progresif fatal tanpa profilaksis sebelum gejala muncul"],
+ diagnosis:["Anamnesis riwayat gigitan/kontak hewan tersangka rabies","Diagnosis klinis pada fase gejala (umumnya sudah terlambat)","Observasi hewan penggigit bila memungkinkan"],
+ tatalaksana:["Cuci luka segera dengan air mengalir & sabun selama 15 menit (langkah paling penting)","Profilaksis pasca pajanan: vaksin rabies & serum anti rabies (SAR) sesuai kategori luka","Segera ke fasilitas kesehatan tanpa menunggu gejala timbul","Tidak ada terapi kuratif efektif setelah gejala neurologis muncul"],
+ sumber:"WHO Rabies Vaccines and Immunoglobulins Position Paper; Kemenkes RI — Pedoman Penatalaksanaan Kasus Gigitan Hewan Penular Rabies."},
+{name:"Rhinitis Alergi",cat:"THT & Mata",
+ definisi:"Inflamasi mukosa hidung akibat reaksi hipersensitivitas terhadap alergen.",
+ gejala:["Bersin berulang, hidung tersumbat/berair","Gatal hidung/mata","Gejala kronik berulang dipicu alergen spesifik (debu, serbuk, bulu hewan)"],
+ diagnosis:["Anamnesis pola gejala & pencetus","Pemeriksaan hidung: mukosa edema, sekret bening","Uji alergi (skin prick test/IgE spesifik) pada kasus tertentu untuk identifikasi alergen"],
+ tatalaksana:["Hindari pajanan alergen yang teridentifikasi","Antihistamin oral/intranasal untuk kontrol gejala (lihat modul Hitung Dosis)","Kortikosteroid intranasal untuk gejala persisten/sedang-berat","Imunoterapi alergen pada kasus tertentu yang terindikasi"],
+ sumber:"ARIA (Allergic Rhinitis and its Impact on Asthma) Guidelines."},
+{name:"Skabies",cat:"Kulit",
+ definisi:"Infestasi kulit oleh tungau Sarcoptes scabiei, sangat menular melalui kontak kulit erat.",
+ gejala:["Gatal hebat terutama malam hari","Lesi papul/terowongan (burrow) di sela jari, pergelangan, area lipatan","Sering mengenai anggota keluarga/lingkungan serumah/asrama"],
+ diagnosis:["Diagnosis klinis berdasar pola lesi & riwayat kontak","Identifikasi tungau/telur dari kerokan kulit bila tersedia mikroskop","Riwayat gatal pada kontak serumah mendukung diagnosis"],
+ tatalaksana:["Skabisid topikal (permetrin, dll) dioleskan ke seluruh tubuh sesuai petunjuk","Terapi serentak untuk seluruh kontak serumah/erat","Cuci/jemur pakaian & alat tidur","Edukasi gatal dapat menetap beberapa minggu pasca terapi efektif (reaksi alergi residu)"],
+ sumber:"WHO — Guideline on the Control of Scabies; IACS (International Alliance for the Control of Scabies)."},
+{name:"Stroke Iskemik",cat:"Saraf",
+ definisi:"Defisit neurologis fokal akut akibat gangguan aliran darah ke otak karena sumbatan pembuluh darah.",
+ gejala:["Kelemahan/kesemutan satu sisi tubuh mendadak","Bicara pelo/sulit dimengerti","Wajah asimetris/mencong","Onset mendadak — lihat juga modul FAST pendekatan kegawatdaruratan"],
+ diagnosis:["Skor stroke terstandar (NIHSS) bila fasilitas tersedia","CT/MRI kepala untuk membedakan iskemik vs hemoragik","Cari etiologi: kardioemboli, aterosklerosis besar, penyakit pembuluh darah kecil"],
+ tatalaksana:["Stabilisasi ABC, kontrol gula darah & suhu","Trombolitik/trombektomi pada window time & kriteria tertentu","Antiplatelet & manajemen faktor risiko untuk pencegahan sekunder","Rehabilitasi dini multidisiplin"],
+ sumber:"AHA/ASA Guidelines for Early Management of Acute Ischemic Stroke; PERDOSSI."},
+{name:"SLE (Systemic Lupus Erythematosus)",cat:"Hematologi & Imunologi",
+ definisi:"Penyakit autoimun sistemik kronik dengan manifestasi multiorgan akibat produksi autoantibodi.",
+ gejala:["Ruam malar (kupu-kupu) di wajah","Artritis, fotosensitivitas","Demam, lemas kronik","Keterlibatan organ: ginjal (nefritis lupus), hematologi, neuropsikiatri"],
+ diagnosis:["Kriteria klasifikasi (mis. ACR/EULAR) berdasar kombinasi klinis & laboratorium","ANA, anti-dsDNA, komplemen (C3/C4)","Evaluasi keterlibatan organ: urinalisis, fungsi ginjal, darah lengkap"],
+ tatalaksana:["Kortikosteroid & imunosupresan sesuai keparahan & organ terlibat","Hydroxychloroquine sebagai terapi dasar jangka panjang pada banyak kasus","Pemantauan aktivitas penyakit & efek samping terapi berkala","Edukasi proteksi sinar matahari & manajemen flare"],
+ sumber:"EULAR Recommendations for the Management of SLE; Ikatan Reumatologi Indonesia (IRA)."},
+{name:"Tuberkulosis Paru",cat:"Infeksi & Tropis",
+ definisi:"Infeksi kronik oleh Mycobacterium tuberculosis yang umumnya mengenai paru, dapat menular melalui droplet.",
+ gejala:["Batuk kronik ≥2 minggu, dapat disertai darah","Demam subfebris terutama sore/malam, berat badan turun","Keringat malam, lemas"],
+ diagnosis:["Pemeriksaan dahak (mikroskopis BTA, atau tes cepat molekuler bila tersedia)","Rontgen toraks: infiltrat, kavitas terutama lobus atas","Skrining kontak serumah & faktor risiko (HIV, diabetes)"],
+ tatalaksana:["Terapi OAT (obat anti tuberkulosis) kombinasi fase intensif & lanjutan sesuai pedoman nasional","Pemantauan kepatuhan & efek samping obat berkala","Evaluasi konversi dahak & respons klinis","Tata laksana kontak & pencegahan penularan"],
+ sumber:"WHO Consolidated Guidelines on Tuberculosis; Kemenkes RI — Pedoman Nasional Pelayanan Kedokteran Tata Laksana Tuberkulosis."},
+{name:"Tifoid (Demam Tifoid)",cat:"Infeksi & Tropis",
+ definisi:"Infeksi sistemik oleh Salmonella typhi, ditularkan melalui makanan/air terkontaminasi.",
+ gejala:["Demam meningkat bertahap (step ladder), memburuk tiap hari","Nyeri perut, konstipasi/diare","Lidah kotor (coated tongue), bradikardia relatif","Dapat disertai hepatosplenomegali"],
+ diagnosis:["Kultur darah (gold standard, terutama minggu pertama)","Uji serologi (Widal/Tubex) dengan keterbatasan interpretasi","Darah lengkap: leukopenia relatif dapat ditemukan"],
+ tatalaksana:["Antibiotik sesuai pola resistensi lokal (lihat modul Hitung Dosis)","Terapi suportif: hidrasi, istirahat, diet sesuai toleransi","Pemantauan komplikasi: perforasi usus, perdarahan saluran cerna","Edukasi higiene & sanitasi pencegahan"],
+ sumber:"WHO — Background Document on Typhoid Fever; Kemenkes RI."},
+{name:"Tetanus",cat:"Infeksi & Tropis",
+ definisi:"Penyakit akibat toksin Clostridium tetani yang masuk melalui luka terkontaminasi, menyebabkan kekakuan otot generalisata.",
+ gejala:["Trismus (kekakuan rahang) sebagai gejala awal khas","Kekakuan otot generalisata, opistotonus","Kejang dipicu rangsang ringan (suara, cahaya, sentuhan)","Riwayat luka tidak terawat, tidak imunisasi adekuat"],
+ diagnosis:["Diagnosis klinis berdasar gejala khas & riwayat luka","Tidak ada uji laboratorium spesifik baku untuk konfirmasi rutin","Singkirkan diferensial: meningitis, intoksikasi strychnine"],
+ tatalaksana:["Perawatan luka & debridement","Immunoglobulin tetanus & vaksinasi sesuai status imunisasi","Kontrol kejang & spasme otot di ruang tenang minim rangsang","Dukungan ventilasi pada kasus berat dengan spasme laring/pernapasan"],
+ sumber:"WHO Position Paper on Tetanus Vaccines; Kemenkes RI."},
+{name:"Ulkus Peptikum",cat:"Saluran Cerna",
+ definisi:"Luka pada mukosa lambung/duodenum akibat ketidakseimbangan faktor agresif (asam, H. pylori, NSAID) dan faktor protektif.",
+ gejala:["Nyeri ulu hati, dapat memburuk/membaik dengan makan tergantung lokasi","Mual, kembung","Tanda alarm: melena, hematemesis, penurunan berat badan, anemia"],
+ diagnosis:["Endoskopi sebagai modalitas diagnostik utama","Uji H. pylori (urea breath test, biopsi, antigen tinja)","Riwayat penggunaan NSAID/aspirin jangka panjang"],
+ tatalaksana:["Penghambat pompa proton (PPI) sebagai terapi utama","Eradikasi H. pylori bila terbukti positif (terapi kombinasi sesuai pedoman)","Hentikan/kurangi NSAID bila memungkinkan","Evaluasi & tata laksana segera pada komplikasi perdarahan/perforasi"],
+ sumber:"American College of Gastroenterology Guideline for Peptic Ulcer Disease; Maastricht/Florence Consensus on H. pylori."},
+{name:"Urtikaria",cat:"Kulit",
+ definisi:"Reaksi kulit ditandai bentol gatal (wheal) timbul mendadak, dapat akut atau kronik (>6 minggu).",
+ gejala:["Bentol merah gatal, dapat berpindah tempat dalam jam","Dapat disertai angioedema","Akut: sering terkait alergen/infeksi; kronik: sering idiopatik"],
+ diagnosis:["Diagnosis klinis berdasar tampilan lesi khas & pola perjalanan","Cari pencetus pada kasus akut (makanan, obat, infeksi)","Evaluasi lebih lanjut pada urtikaria kronik bila dicurigai penyebab sistemik"],
+ tatalaksana:["Antihistamin non-sedatif sebagai terapi lini pertama (lihat modul Hitung Dosis)","Naikkan dosis antihistamin sesuai pedoman bila respons kurang","Kortikosteroid jangka pendek pada eksaserbasi berat","Hindari pencetus yang teridentifikasi; waspada tanda anafilaksis"],
+ sumber:"EAACI/GA²LEN/EDF/WAO Guideline for Urticaria."},
+{name:"Varicella (Cacar Air)",cat:"Infeksi & Tropis",
+ definisi:"Infeksi virus varicella-zoster primer, sangat menular, umumnya pada anak namun dapat lebih berat pada dewasa/imunokompromais.",
+ gejala:["Ruam vesikular gatal yang muncul bergelombang (berbagai stadium lesi bersamaan)","Demam ringan-sedang","Lesi dapat mengenai kulit kepala, mulut"],
+ diagnosis:["Diagnosis klinis berdasar tampilan ruam khas & riwayat kontak","PCR/kultur virus pada kasus atipikal atau imunokompromais"],
+ tatalaksana:["Terapi suportif: antipiretik (hindari aspirin — risiko Reye syndrome), losion antipruritus","Antivirus pada kasus risiko tinggi/berat & dewasa (lihat modul Hitung Dosis)","Isolasi hingga seluruh lesi berkrusta untuk cegah penularan","Vaksinasi sebagai pencegahan utama"],
+ sumber:"CDC Varicella Clinical Overview; Kemenkes RI Pedoman Imunisasi."},
+{name:"Vertigo",cat:"Saraf",
+ definisi:"Sensasi berputar/bergerak yang dirasakan tanpa gerakan sebenarnya, dapat berasal dari gangguan vestibular perifer atau sentral.",
+ gejala:["Sensasi berputar, sering dipicu perubahan posisi kepala (perifer)","Mual, muntah, nistagmus","Tanda bahaya sentral: gangguan keseimbangan berat, defisit neurologis fokal, nyeri kepala hebat"],
+ diagnosis:["Anamnesis pola onset, durasi, pencetus","Uji posisi (Dix-Hallpike) untuk BPPV","Pemeriksaan neurologis untuk membedakan perifer vs sentral (HINTS exam pada fasilitas yang mampu)"],
+ tatalaksana:["BPPV: manuver reposisi kanalit (Epley, dll)","Obat anti-vertigo simptomatik (lihat modul Hitung Dosis)","Rujuk segera bila ada tanda bahaya sentral (curiga stroke vertebrobasiler)","Edukasi & latihan vestibular pada kasus kronik"],
+ sumber:"AAO-HNS Clinical Practice Guideline — Benign Paroxysmal Positional Vertigo."},
+{name:"Wasir (Hemoroid)",cat:"Bedah & Trauma",
+ definisi:"Pembengkakan pleksus vena di area anorektal, diklasifikasikan internal/eksternal berdasar lokasi.",
+ gejala:["Perdarahan merah segar saat defekasi (hemoroid internal)","Benjolan/prolaps anus","Nyeri (terutama hemoroid eksternal trombosis), gatal anus"],
+ diagnosis:["Inspeksi & pemeriksaan colok dubur","Anoskopi bila tersedia untuk derajat hemoroid internal","Singkirkan diferensial perdarahan saluran cerna bawah lain pada kasus atipikal/usia risiko tinggi"],
+ tatalaksana:["Modifikasi diet tinggi serat, hidrasi, hindari mengejan berlebih","Terapi topikal & oral simptomatik","Prosedur minimal invasif (ligasi, skleroterapi) pada derajat tertentu","Hemoroidektomi pada kasus berat/gagal terapi konservatif"],
+ sumber:"American Society of Colon and Rectal Surgeons (ASCRS) Clinical Practice Guidelines for Hemorrhoids."},
+{name:"Herpes Zoster",cat:"Kulit",
+ definisi:"Reaktivasi virus varicella-zoster laten di ganglion saraf, menimbulkan ruam vesikular sesuai dermatom.",
+ gejala:["Nyeri/rasa terbakar di area dermatom sebelum ruam muncul (fase prodromal)","Ruam vesikular unilateral mengikuti distribusi dermatom","Dapat disertai nyeri neuropatik pasca-herpetik berkepanjangan"],
+ diagnosis:["Diagnosis klinis berdasar distribusi dermatom khas","PCR/kultur pada kasus atipikal/imunokompromais","Evaluasi keterlibatan mata bila mengenai dermatom trigeminal (herpes zoster oftalmikus — rujuk segera)"],
+ tatalaksana:["Antivirus dimulai sedini mungkin (idealnya <72 jam onset ruam) (lihat modul Hitung Dosis)","Analgesik untuk kontrol nyeri akut","Pemantauan & terapi neuropati pasca-herpetik bila menetap","Rujukan oftalmologi segera pada keterlibatan mata"],
+ sumber:"CDC Shingles Clinical Overview; IDSA."},
+{name:"Yellow Fever (Demam Kuning)",cat:"Infeksi & Tropis",
+ definisi:"Infeksi virus arbovirus ditularkan nyamuk Aedes, endemis di sebagian Afrika & Amerika Selatan, relevan pada riwayat perjalanan.",
+ gejala:["Fase awal: demam, nyeri kepala, mialgia, mual","Fase toksik (sebagian kasus): ikterik, perdarahan, gagal organ"],
+ diagnosis:["Anamnesis riwayat perjalanan ke area endemis & status vaksinasi","Serologi/PCR sesuai fase infeksi & ketersediaan fasilitas rujukan"],
+ tatalaksana:["Terapi suportif (tidak ada antivirus spesifik) — hidrasi, kontrol demam, pemantauan fungsi organ","Vaksinasi sebagai pencegahan utama sebelum perjalanan ke area endemis","Rujuk fasilitas dengan kapasitas perawatan intensif pada fase toksik"],
+ sumber:"WHO Yellow Fever Fact Sheet & Vaccination Position Paper."},
+{name:"Zoster Oftalmikus",cat:"THT & Mata",
+ definisi:"Herpes zoster yang mengenai dermatom oftalmik (cabang nervus trigeminus V1), berisiko komplikasi mata serius.",
+ gejala:["Ruam vesikular di dahi/kelopak mata/hidung sesuai dermatom V1","Nyeri mata, fotofobia, penurunan visus","Tanda Hutchinson (lesi di ujung hidung) menandakan risiko keterlibatan mata tinggi"],
+ diagnosis:["Diagnosis klinis berdasar distribusi ruam khas","Pemeriksaan mata lengkap (termasuk slit lamp) — rujuk oftalmologi segera bila tersedia tanda keterlibatan okular","Evaluasi visus & tekanan intraokular"],
+ tatalaksana:["Antivirus sistemik segera (lihat modul Hitung Dosis)","Rujukan oftalmologi mendesak bila ada keterlibatan mata untuk cegah komplikasi (keratitis, uveitis, kebutaan)","Analgesik untuk nyeri","Pemantauan komplikasi jangka panjang (neuropati pasca-herpetik, jaringan parut kornea)"],
+ sumber:"American Academy of Ophthalmology Preferred Practice Pattern — Herpes Zoster Ophthalmicus."}
+];
+
+function buildDiseaseUI(){
+  const listEl = document.getElementById('diseaseList');
+  const sorted = DISEASES.slice().sort((a,b)=>a.name.localeCompare(b.name,'id'));
+  const groups = {};
+  sorted.forEach(d=>{
+    const letter = d.name[0].toUpperCase();
+    if(!groups[letter]) groups[letter]=[];
+    groups[letter].push(d);
+  });
+  let html='';
+  Object.keys(groups).sort().forEach(letter=>{
+    html += `<div class="letter-group" id="dgroup-${letter}"><div class="letter-anchor">${letter}</div>`;
+    groups[letter].forEach(d=>{
+      const idx = DISEASES.indexOf(d);
+      html += `<div class="drug-card" data-name="${d.name.toLowerCase()}">
+        <button type="button" class="drug-toggle" onclick="toggleDrug(this)">
+          <div class="drug-toggle-main">
+            <span class="cat-badge" style="background:${dCatColor(d.cat)}">${d.cat}</span>
+            <span class="drug-name">${d.name}</span>
+          </div>
+          <span class="chevron">▾</span>
+        </button>
+        <div class="drug-detail">
+          <p style="font-size:.85rem;color:var(--text);margin:0 0 10px;">${d.definisi}</p>
+          <div class="gl-section"><h4>Gejala Kunci</h4><ul>${d.gejala.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+          <div class="gl-section"><h4>Pendekatan Diagnosis</h4><ul>${d.diagnosis.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+          <div class="gl-section"><h4>Prinsip Tata Laksana</h4><ul>${d.tatalaksana.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+          <div class="gl-source">📚 Sumber rujukan: ${d.sumber}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  listEl.innerHTML = html;
+  buildDiseaseAzBar(Object.keys(groups));
+  filterDiseases();
+}
+
+function buildDiseaseAzBar(lettersPresent){
+  const bar = document.getElementById('diseaseAzBar');
+  const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  bar.innerHTML = all.map(l=>{
+    const has = lettersPresent.includes(l);
+    return `<button type="button" class="az-letter ${has?'':'disabled'}" ${has?`onclick="document.getElementById('dgroup-${l}').scrollIntoView({behavior:'smooth',block:'start'})"`:'disabled'}>${l}</button>`;
+  }).join('');
+}
+
+function filterDiseases(){
+  const q = document.getElementById('diseaseSearch').value.toLowerCase().trim();
+  let shown=0, total=0;
+  document.querySelectorAll('#diseaseList .letter-group').forEach(group=>{
+    let groupHas=false;
+    group.querySelectorAll('.drug-card').forEach(card=>{
+      total++;
+      const match = !q || card.dataset.name.includes(q);
+      card.style.display = match? '' : 'none';
+      if(match){ shown++; groupHas=true; }
+    });
+    group.style.display = groupHas? '' : 'none';
+  });
+  document.getElementById('diseaseCount').textContent = `Menampilkan ${shown} dari ${total} diagnosis/penyakit`;
+}
+document.getElementById('diseaseSearch').addEventListener('input', filterDiseases);
+
+function setView(view){
+  if(view==='admin' && currentUser().role!=='admin'){ view='home'; }
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.goto===view));
+  if(view==='admin') renderMemberTable();
+  if(view==='guideline') renderGuidelineList();
+  window.scrollTo({top:0});
+}
+document.addEventListener('click', e=>{
+  const g = e.target.closest('[data-goto]');
+  if(g){ setView(g.dataset.goto); }
+});
+
+function setPatientType(type){
+  document.querySelectorAll('.ptype-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+type).classList.add('active');
+  document.querySelectorAll('.ptype-btn').forEach(b=>b.classList.toggle('active', b.dataset.ptype===type));
+  buildPreview(type);
+}
+document.getElementById('ptypeNav').addEventListener('click', e=>{
+  const b = e.target.closest('.ptype-btn');
+  if(b) setPatientType(b.dataset.ptype);
+});
+
+function useBBInDosis(key){
+  const bb = document.getElementById(key+'-bb').value;
+  if(bb){
+    document.getElementById('bbInput').value = bb;
+    recalcAllDoses();
+  }
+  setView('dosis');
+}
+
+/* ====================================================================
+   DATA PASIEN & PEMERIKSAAN FISIK (PEMFIS) PER BIDANG
+==================================================================== */
+const PATIENTS = {
+  umum: {
+    label: "Pasien Umum",
+    pemfis: [
+      {title:"Keadaan Umum & Kesadaran", items:[
+        "Tampak sakit ringan","Tampak sakit sedang","Tampak sakit berat",
+        "Kesadaran kompos mentis","Apatis","Somnolen","Sopor","Koma",
+        "Status gizi baik","Status gizi kurang","Status gizi lebih/obesitas"
+      ], extra:[{label:"GCS (E_V_M_)", placeholder:"cth: E4 V5 M6 = 15"}]},
+      {title:"Kepala, Mata, THT", items:[
+        "Normocephali, wajah simetris","Edema palpebra","Konjungtiva anemis","Sklera ikterik",
+        "Pupil isokor, refleks cahaya +/+","Pupil anisokor","Sekret hidung (+)","Napas cuping hidung",
+        "Bibir sianosis","Faring hiperemis","Pembesaran tonsil","Nyeri tekan sinus"
+      ]},
+      {title:"Leher", items:[
+        "Trakea di tengah","Pembesaran KGB leher","Pembesaran kelenjar tiroid",
+        "JVP normal (5-2 cmH2O)","JVP meningkat","Kaku kuduk (+)"
+      ]},
+      {title:"Thorax – Paru", items:[
+        "Inspeksi: bentuk dada normal, simetris statis & dinamis","Inspeksi: retraksi dinding dada (+)",
+        "Palpasi: vocal fremitus simetris kanan = kiri","Palpasi: vocal fremitus meningkat/menurun",
+        "Perkusi: sonor pada kedua lapang paru","Perkusi: redup","Perkusi: hipersonor",
+        "Auskultasi: vesikuler normal kanan = kiri","Auskultasi: ronkhi basah kasar/halus",
+        "Auskultasi: wheezing","Auskultasi: suara nafas menurun","Auskultasi: stridor"
+      ]},
+      {title:"Thorax – Jantung", items:[
+        "Inspeksi: ictus cordis tidak terlihat","Palpasi: ictus cordis teraba di ICS V MCL sinistra",
+        "Perkusi: batas jantung dalam batas normal","Auskultasi: BJ I-II reguler, murmur (-), gallop (-)",
+        "Auskultasi: murmur (+)","Auskultasi: gallop (+)"
+      ]},
+      {title:"Abdomen", items:[
+        "Inspeksi: datar, simetris","Inspeksi: distensi","Auskultasi: bising usus normal (8-12x/menit)",
+        "Auskultasi: bising usus meningkat","Auskultasi: bising usus menurun/tidak ada (ileus)",
+        "Perkusi: timpani","Perkusi: pekak beralih (asites)","Palpasi: soepel, nyeri tekan (-)",
+        "Palpasi: nyeri tekan (sebutkan regio)","Palpasi: defans muskular","Palpasi: hepatomegali",
+        "Palpasi: splenomegali","Palpasi: nyeri ketok CVA"
+      ]},
+      {title:"Ekstremitas & Kulit", items:[
+        "Akral hangat, CRT < 2 detik","Akral dingin, CRT > 2 detik","Edema tungkai (+)",
+        "Sianosis perifer","Ikterik kulit","Turgor kulit menurun","Ruam/efloresensi kulit"
+      ]},
+      {title:"Status Neurologis", items:[
+        "Refleks fisiologis normal (biseps/triseps/patella/achilles)","Refleks patologis (-) (Babinski dkk)",
+        "Kekuatan motorik 5/5/5/5","Defisit motorik fokal","Rangsang meningeal (-) (Kernig/Brudzinski)"
+      ]}
+    ]
+  },
+  obgyn: {
+    label: "Pasien Obgyn (Obstetri & Ginekologi)",
+    pemfis: [
+      {title:"Status Generalis", items:[
+        "Keadaan umum baik","Tampak sakit sedang","Tampak sakit berat","Kesadaran kompos mentis",
+        "Konjungtiva anemis","Edema wajah/periorbital"
+      ]},
+      {title:"Tanda Vital Obstetri Khusus", items:[
+        "Tekanan darah dalam batas normal","Hipertensi gestasional (TD ≥140/90)","Hipertensi berat (TD ≥160/110)",
+        "Proteinuria urin (dipstick +1/+2/+3)"
+      ]},
+      {title:"Pemeriksaan Obstetri – Inspeksi & Palpasi Abdomen", items:[
+        "Inspeksi: perut membesar sesuai usia gestasi","Inspeksi: linea nigra (+)","Inspeksi: striae gravidarum (+)",
+        "Leopold I: fundus teraba bokong","Leopold I: fundus teraba kepala","Leopold II: punggung kanan",
+        "Leopold II: punggung kiri","Leopold III: bagian terbawah kepala","Leopold III: bagian terbawah bokong",
+        "Leopold III: belum masuk PAP","Leopold III: sudah masuk PAP","Leopold IV: konvergen","Leopold IV: divergen",
+        "His teratur","His tidak teratur","DJJ dalam batas normal (120-160 dpm)","DJJ bradikardia/takikardia","DJJ tidak terdengar"
+      ], extra:[
+        {label:"TFU (cm)", placeholder:"cm"},
+        {label:"His (frekuensi/durasi/kekuatan)", placeholder:"cth: 3x/10menit/40 detik/kuat"},
+        {label:"DJJ (x/menit)", placeholder:"x/menit"}
+      ]},
+      {title:"Pemeriksaan Dalam (Vaginal Touche)", items:[
+        "Vulva/vagina tidak ada kelainan","Portio tebal lunak","Portio tipis lunak","Portio tidak teraba",
+        "Ketuban utuh","Ketuban pecah, jernih","Ketuban pecah, mekoneal","Ketuban pecah, keruh/berbau",
+        "Presentasi kepala","Presentasi bokong","Presentasi bahu/letak lintang",
+        "Tali pusat/bagian kecil menumbung (-)","Tali pusat/bagian kecil teraba (+)"
+      ], extra:[
+        {label:"Pembukaan serviks (cm)", placeholder:"cm"},
+        {label:"Penurunan kepala (Hodge)", placeholder:"cth: Hodge II"},
+        {label:"Penunjuk/denominator", placeholder:"cth: UUK kanan depan"}
+      ]},
+      {title:"Inspekulo & Status Ginekologi", items:[
+        "Portio licin","Portio erosi/rapuh, mudah berdarah","Fluor albus (+)","Fluksus vaginal aktif",
+        "Nyeri goyang portio (+)","Massa adneksa teraba","Uterus antefleksi, ukuran sesuai","Uterus retrofleksi",
+        "Uterus membesar (mioma/kehamilan)"
+      ]},
+      {title:"Payudara", items:[
+        "Simetris, tidak ada massa","Puting menonjol","Puting tertarik ke dalam (retraksi)",
+        "ASI/kolostrum (+)","ASI (-)","Massa/nyeri tekan payudara (+)"
+      ]},
+      {title:"Tanda Bahaya Preeklampsia/Eklampsia", items:[
+        "Edema tungkai/wajah (+)","Refleks patella meningkat (hiperrefleks)","Klonus (+)",
+        "Nyeri tekan epigastrium/ulu hati","Pandangan kabur (dilaporkan pasien)"
+      ]}
+    ]
+  },
+  bedah: {
+    label: "Pasien Bedah",
+    pemfis: [
+      {title:"Status Generalis", items:[
+        "Tampak sakit ringan","Tampak sakit sedang","Tampak sakit berat","Kompos mentis",
+        "Gelisah karena nyeri","Pucat/anemis","Diaforesis"
+      ], extra:[{label:"Skala Nyeri (NRS 0-10)", placeholder:"0-10"}]},
+      {title:"Status Lokalis – Inspeksi", items:[
+        "Warna kulit normal","Hiperemis","Livide/kebiruan","Jaringan nekrotik","Bengkak (swelling) (+)",
+        "Deformitas (+)","Luka terbuka","Luka tertutup verban, kering","Verban basah/rembes",
+        "Pus/discharge purulen (+)"
+      ], extra:[
+        {label:"Lokasi/Regio", placeholder:"cth: regio cruris dextra"},
+        {label:"Ukuran luka (cm)", placeholder:"p x l x d cm"}
+      ]},
+      {title:"Status Lokalis – Palpasi", items:[
+        "Nyeri tekan lokal (+)","Teraba hangat (calor)","Krepitasi (+)","Fluktuasi (+)",
+        "Massa teraba konsistensi kistik","Massa teraba konsistensi padat"
+      ]},
+      {title:"Status Vaskular & Neurologis Distal (6P)", items:[
+        "Pulsasi arteri distal teraba kuat","Pulsasi arteri distal lemah/tidak teraba","Pallor (pucat) distal (-)",
+        "Pallor (pucat) distal (+)","Sensorik distal normal","Sensorik distal menurun (paresthesia)",
+        "Motorik distal normal","Motorik distal menurun (paresis/paralisis)","Akral distal dingin (poikilothermia)",
+        "CRT distal < 2 detik","CRT distal > 2 detik"
+      ]},
+      {title:"Luka Operasi (Status Post-Op)", items:[
+        "Luka operasi kering, tertutup kassa","Rembes darah/serous minimal","Jahitan intak, tanpa dehisensi",
+        "Dehisensi luka (+)","Tanda infeksi luka operasi: eritema","Tanda infeksi luka operasi: edema",
+        "Tanda infeksi luka operasi: pus","Tanda infeksi luka operasi: nyeri tekan meningkat","Drain terpasang"
+      ], extra:[{label:"Produksi drain (ml/24 jam)", placeholder:"ml/24 jam"}]},
+      {title:"Abdomen Akut (Bedah Digestif)", items:[
+        "Inspeksi: datar","Inspeksi: distensi","Auskultasi: bising usus normal","Auskultasi: bising usus menurun/ileus",
+        "Auskultasi: bising usus meningkat","Perkusi: timpani","Perkusi: pekak",
+        "Palpasi: nyeri tekan titik McBurney","Nyeri lepas/Blumberg sign (+)","Rovsing sign (+)",
+        "Psoas sign (+)","Obturator sign (+)","Murphy sign (+)","Defans muskular (+)"
+      ]},
+      {title:"Muskuloskeletal (Ortopedi)", items:[
+        "Look: deformitas angulasi/rotasi (-)","Look: deformitas angulasi/rotasi (+)",
+        "Feel: nyeri tekan sepanjang tulang (+)","Move: ROM aktif dalam batas normal",
+        "Move: ROM aktif terbatas","Move: ROM pasif terbatas, nyeri saat digerakkan"
+      ]}
+    ]
+  },
+  jantung: {
+    label: "Pasien Jantung (Kardiologi)",
+    pemfis: [
+      {title:"Status Generalis", items:[
+        "Tampak sakit ringan","Tampak sakit sedang","Tampak sakit berat","Kompos mentis",
+        "Sesak saat berbicara/beraktivitas","Ortopnea (+)","Paroxysmal nocturnal dyspnea (dilaporkan)","Diaforesis (+)"
+      ]},
+      {title:"Inspeksi & Palpasi Precordium", items:[
+        "Ictus cordis tidak terlihat","Ictus cordis terlihat di ICS V MCL sinistra","Ictus cordis bergeser ke lateral",
+        "Thrill (+)","Heave/lift ventrikel kanan (+)"
+      ]},
+      {title:"Perkusi Jantung", items:[
+        "Batas jantung kanan & kiri dalam batas normal","Batas jantung kiri bergeser ke lateral (kardiomegali)"
+      ]},
+      {title:"Auskultasi Jantung per Area Valvular", items:[
+        "Area Mitral (apex): BJ I-II reguler","Area Mitral: murmur sistolik/diastolik (+)",
+        "Area Tricuspid: BJ I-II reguler","Area Tricuspid: murmur (+)",
+        "Area Aorta (ICS II parasternal dextra): murmur (+)","Area Pulmonal (ICS II parasternal sinistra): murmur (+)",
+        "Split S2 (+)","Gallop S3 (+)","Gallop S4 (+)","Friction rub (+)","Irama ireguler (curiga fibrilasi atrium)"
+      ]},
+      {title:"Vena Jugularis & Perifer", items:[
+        "JVP normal (5-2 cmH2O)","JVP meningkat","Hepatojugular reflux (+)","Akral hangat","Akral dingin",
+        "Pulsasi arteri radialis teraba kuat","Pulsasi arteri dorsalis pedis lemah/tidak teraba","Pulsus deficit (+)",
+        "Edema tungkai bilateral pitting","Edema tungkai non-pitting","CRT > 2 detik"
+      ], extra:[{label:"JVP terukur (cmH2O)", placeholder:"cmH2O"}]},
+      {title:"Paru – Tanda Kongesti", items:[
+        "Vesikuler normal","Ronkhi basah halus di basal paru (bilateral)","Ronkhi basah kasar","Wheezing kardiak",
+        "Perkusi redup di basal (curiga efusi pleura)"
+      ]},
+      {title:"Klasifikasi Klinis", items:[
+        "Killip I (tanpa tanda gagal jantung)","Killip II (ronkhi basah, S3 gallop)","Killip III (edema paru akut)",
+        "Killip IV (syok kardiogenik)","NYHA I","NYHA II","NYHA III","NYHA IV"
+      ]}
+    ]
+  }
+};
+
+function renderPatientPanel(key){
+  const data = PATIENTS[key];
+  const el = document.getElementById('panel-'+key);
+  let html = '';
+
+  html += `<div class="card">
+    <h2>Identitas Pasien — ${data.label}</h2>
+    <div class="grid cols4">
+      <div class="field"><label>Nama Pasien</label><input type="text" id="${key}-nama" placeholder="Nama lengkap"></div>
+      <div class="field"><label>Usia</label><input type="text" id="${key}-usia" placeholder="cth: 28 tahun"></div>
+      <div class="field"><label>No. RM</label><input type="text" id="${key}-rm" placeholder="No. rekam medis"></div>
+      <div class="field"><label>Tanggal/Jam</label><input type="text" id="${key}-tgl" placeholder="dd/mm/yyyy - jam"></div>
+    </div>
+    <div class="grid cols4" style="margin-top:10px;">
+      <div class="field">
+        <label>Berat Badan (kg)</label>
+        <input type="number" id="${key}-bb" placeholder="kg">
+        <button type="button" class="bb-link" onclick="useBBInDosis('${key}')">→ pakai di kalkulator dosis</button>
+      </div>
+      <div class="field"><label>Tinggi Badan (cm)</label><input type="number" id="${key}-tb" placeholder="cm"></div>
+      <div class="field"><label>Tekanan Darah</label><input type="text" id="${key}-td" placeholder="mmHg"></div>
+      <div class="field"><label>Nadi / RR / Suhu</label><input type="text" id="${key}-vital" placeholder="x/menit / x/menit / °C"></div>
+    </div>
+  </div>`;
+
+  html += `<div class="card">
+    <h2>S — Subjective (Anamnesis)</h2>
+    <textarea id="${key}-subjective" placeholder="Keluhan utama, riwayat penyakit sekarang, riwayat penyakit dahulu, riwayat pengobatan, riwayat keluarga, dll."></textarea>
+  </div>`;
+
+  html += `<div class="card"><h2>O — Objective: Pemeriksaan Fisik (centang temuan)</h2>`;
+  data.pemfis.forEach((grp, gi)=>{
+    html += `<div class="pemfis-group">
+      <div class="title"><span>${grp.title}</span><button type="button" class="reset-btn" onclick="resetGroup('${key}',${gi})">↺ reset bagian ini</button></div>
+      <div class="chk-grid">`;
+    grp.items.forEach((item,ii)=>{
+      html += `<label class="chk"><input type="checkbox" id="${key}-pf-${gi}-${ii}" value="${item}"><span>${item}</span></label>`;
+    });
+    html += `</div>`;
+    if(grp.extra){
+      html += `<div class="extra-row">`;
+      grp.extra.forEach((ex,exi)=>{
+        html += `<div class="extra-field"><label>${ex.label}</label><input type="text" id="${key}-ex-${gi}-${exi}" placeholder="${ex.placeholder||''}"></div>`;
+      });
+      html += `</div>`;
+    }
+    html += `</div>`;
+  });
+  html += `<div class="field" style="margin-top:6px;"><label>Catatan Pemeriksaan Fisik Tambahan</label><textarea id="${key}-pftambahan" placeholder="Temuan lain di luar checklist..."></textarea></div>`;
+  html += `</div>`;
+
+  html += `<div class="card">
+    <h2>A — Assessment (Diagnosis)</h2>
+    <textarea id="${key}-assessment" placeholder="Diagnosis kerja / diagnosis banding"></textarea>
+  </div>`;
+
+  html += `<div class="card">
+    <h2>P — Plan (Rencana Terapi)</h2>
+    <textarea id="${key}-plan" placeholder="Terapi farmakologi, non-farmakologi, edukasi, rencana pemeriksaan penunjang, rencana kontrol/rujukan"></textarea>
+  </div>`;
+
+  html += `<div class="card preview-card">
+    <div class="preview-header">
+      <h2>📋 Preview SOAP — ${data.label}</h2>
+      <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Cetak</button>
+    </div>
+    <div class="soap-preview" id="preview-${key}">Mengisi form di atas akan otomatis memperbarui preview ini secara langsung.</div>
+  </div>`;
+
+  el.innerHTML = html;
+  el.removeEventListener('input', el._previewHandler||(()=>{}));
+  el._previewHandler = ()=>buildPreview(key);
+  el.addEventListener('input', el._previewHandler);
+  el.addEventListener('change', el._previewHandler);
+}
+
+function resetGroup(key, gi){
+  document.querySelectorAll(`#panel-${key} .pemfis-group`)[gi].querySelectorAll('input[type=checkbox]').forEach(c=>c.checked=false);
+  document.querySelectorAll(`#panel-${key} .pemfis-group`)[gi].querySelectorAll('input[type=text]').forEach(t=>t.value='');
+  buildPreview(key);
+}
+
+function val(id){ const e=document.getElementById(id); return e? e.value.trim() : ''; }
+
+function buildPreview(key){
+  const data = PATIENTS[key];
+  const box = document.getElementById('preview-'+key);
+  if(!box) return;
+
+  const nama = val(`${key}-nama`)||'-';
+  const usia = val(`${key}-usia`)||'-';
+  const rm = val(`${key}-rm`)||'-';
+  const tgl = val(`${key}-tgl`)||'-';
+  const bb = val(`${key}-bb`)||'-';
+  const tb = val(`${key}-tb`)||'-';
+  const td = val(`${key}-td`)||'-';
+  const vital = val(`${key}-vital`)||'-';
+
+  let out = `SOAP — ${data.label}\n${'='.repeat(46)}\n`;
+  out += `Nama: ${nama}    Usia: ${usia}    No.RM: ${rm}    Tanggal: ${tgl}\n`;
+  out += `BB: ${bb} kg   TB: ${tb} cm   TD: ${td} mmHg   N/RR/S: ${vital}\n`;
+
+  out += `\nS (SUBJECTIVE)\n${val(`${key}-subjective`)||'-'}\n`;
+
+  out += `\nO (OBJECTIVE) — Pemeriksaan Fisik\n`;
+  let anyChecked=false;
+  data.pemfis.forEach((grp,gi)=>{
+    const checked=[];
+    grp.items.forEach((item,ii)=>{
+      const c=document.getElementById(`${key}-pf-${gi}-${ii}`);
+      if(c && c.checked) checked.push(item);
+    });
+    const extraTexts=[];
+    if(grp.extra){
+      grp.extra.forEach((ex,exi)=>{
+        const v = val(`${key}-ex-${gi}-${exi}`);
+        if(v) extraTexts.push(`${ex.label}: ${v}`);
+      });
+    }
+    const combined = checked.concat(extraTexts);
+    if(combined.length){
+      anyChecked=true;
+      out += `• ${grp.title}: ${combined.join(', ')}\n`;
+    }
+  });
+  if(!anyChecked) out += `(belum ada temuan pemeriksaan fisik yang dicentang/diisi)\n`;
+  const tambahan = val(`${key}-pftambahan`);
+  if(tambahan) out += `• Catatan tambahan: ${tambahan}\n`;
+
+  out += `\nA (ASSESSMENT)\n${val(`${key}-assessment`)||'-'}\n`;
+  out += `\nP (PLAN)\n${val(`${key}-plan`)||'-'}\n`;
+
+  box.textContent = out;
+}
+
+Object.keys(PATIENTS).forEach(key=>{
+  renderPatientPanel(key);
+  buildPreview(key);
+});
+
+/* ====================================================================
+   KALKULATOR DOSIS OBAT — DATABASE A-Z
+   basis 'dose' = mg/kgBB PER KALI pemberian (dikali timesPerDay utk total harian)
+   basis 'day'  = mg/kgBB PER HARI (dibagi timesPerDay utk dosis per kali)
+   basis 'fixed'= dosis tetap dewasa, tidak berdasarkan berat badan
+==================================================================== */
+const CAT_COLORS = {
+  "Analgesik & Antipiretik":"#2f7d6b","Antibiotik":"#1f6f8b","Antihistamin":"#8a5fbf",
+  "Antikonvulsan & Sedasi":"#b5552f","Antifungal":"#0e8a6d","Antivirus":"#0e8a6d","Antihelmintik":"#0e8a6d",
+  "Endokrin & Metabolik":"#c0772e","Gastrointestinal & Antiemetik":"#3b6ea5","Kortikosteroid":"#a1467c",
+  "Psikiatri & Neurologi":"#6a5acd","Respirasi":"#2f9e8f","Vitamin & Suplemen":"#5a9216",
+  "Obgyn — Khusus":"#a1467c","Bedah — Khusus":"#b8862e","Jantung — Khusus":"#c0392b"
+};
+function catColor(cat){ return CAT_COLORS[cat] || '#5a6b75'; }
+
+const DRUGS = [
+{name:"Acarbose",cat:"Endokrin & Metabolik",indikasi:"Diabetes melitus tipe 2 (penghambat alfa-glukosidase)",basis:"fixed",fixedNote:"25-100mg, 3x/hari, dikunyah bersama suapan pertama makan",route:"Oral",
+ sediaan:[{brand:"Glucobay",bentuk:"Tablet 50mg",konsentrasi:50,per:1,unit:"tablet"},{brand:"Glucobay",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"}]},
+{name:"Adrenalin (Epinefrin)",cat:"Bedah — Khusus",indikasi:"Anafilaksis, henti jantung (kode RJP), syok",basis:"fixed",fixedNote:"Anafilaksis: 0.01mg/kgBB IM (maks 0.5mg), dapat diulang tiap 5-15 menit; dosis RJP sesuai protokol ACLS",route:"IM/IV",
+ sediaan:[{brand:"Epinephrine generik",bentuk:"Injeksi ampul 1mg/1ml (1:1000)",konsentrasi:1,per:1,unit:"ml"},{brand:"Raivask",bentuk:"Injeksi ampul 1mg/1ml (1:1000)",konsentrasi:1,per:1,unit:"ml"}]},
+{name:"Atropine Sulfat",cat:"Bedah — Khusus",indikasi:"Bradikardia simtomatik, premedikasi anestesi, antidot organofosfat",basis:"fixed",fixedNote:"Bradikardia: 0.5mg IV tiap 3-5 menit (maks 3mg); dosis antidot organofosfat jauh lebih tinggi sesuai protokol",route:"IV/IM/SC",
+ sediaan:[{brand:"Atropine Sulfat generik",bentuk:"Injeksi ampul 0.25mg/ml",konsentrasi:0.25,per:1,unit:"ml"},{brand:"Atropine Sulfat generik",bentuk:"Injeksi ampul 0.5mg/ml",konsentrasi:0.5,per:1,unit:"ml"}]},
+{name:"Hidrokortison",cat:"Kortikosteroid",indikasi:"Insufisiensi adrenal akut, syok anafilaksis (adjuvan), asma berat",basis:"dose",doseLow:2,doseHigh:4,timesPerDay:3,maxDay:400,route:"IV/IM",
+ sediaan:[{brand:"Solu-Cortef",bentuk:"Injeksi vial 100mg",konsentrasi:100,per:1,unit:"vial"},{brand:"Hidrokortison generik",bentuk:"Injeksi vial 100mg",konsentrasi:100,per:1,unit:"vial"}]},
+{name:"Midazolam",cat:"Antikonvulsan & Sedasi",indikasi:"Sedasi prosedural, status epileptikus, premedikasi anestesi",basis:"dose",doseLow:0.1,doseHigh:0.3,timesPerDay:1,maxDay:10,note:"dosis tunggal, titrasi sesuai respons & efek sedasi",route:"IV/IM/Intranasal",
+ sediaan:[{brand:"Miloz",bentuk:"Injeksi ampul 5mg/ml",konsentrasi:5,per:1,unit:"ml"},{brand:"Sedacum",bentuk:"Injeksi ampul 5mg/ml",konsentrasi:5,per:1,unit:"ml"},{brand:"Midazolam generik",bentuk:"Injeksi ampul 15mg/3ml",konsentrasi:15,per:3,unit:"ml"}]},
+{name:"Acyclovir",cat:"Antivirus",indikasi:"Varisela (cacar air), herpes zoster, herpes simpleks",basis:"dose",doseLow:20,doseHigh:20,timesPerDay:4,maxDay:3200,route:"Oral",
+ sediaan:[{brand:"Zovirax",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"},{brand:"Acyclovir generik",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"},{brand:"Virucid",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"}]},
+{name:"Albendazole",cat:"Antihelmintik",indikasi:"Infeksi cacing (askariasis, ankilostomiasis, dll)",basis:"fixed",fixedNote:"400mg dosis tunggal, dapat diulang 2 minggu kemudian untuk infeksi tertentu",route:"Oral",
+ sediaan:[{brand:"Albazen",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"},{brand:"Zentel",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"},{brand:"Alben",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"}]},
+{name:"Allopurinol",cat:"Endokrin & Metabolik",indikasi:"Hiperurisemia, gout/asam urat",basis:"fixed",fixedNote:"Mulai 100mg/hari, titrasi bertahap sampai 300mg/hari",route:"Oral",
+ sediaan:[{brand:"Zyloric",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"},{brand:"Zyloric",bentuk:"Tablet 300mg",konsentrasi:300,per:1,unit:"tablet"},{brand:"Allopurinol generik",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"}]},
+{name:"Alprazolam",cat:"Psikiatri & Neurologi",indikasi:"Gangguan ansietas/kecemasan",basis:"fixed",fixedNote:"0.25-0.5mg, 2-3x/hari",route:"Oral",
+ sediaan:[{brand:"Xanax",bentuk:"Tablet 0.5mg",konsentrasi:0.5,per:1,unit:"tablet"},{brand:"Alganax",bentuk:"Tablet 0.5mg",konsentrasi:0.5,per:1,unit:"tablet"},{brand:"Calmlet",bentuk:"Tablet 0.5mg",konsentrasi:0.5,per:1,unit:"tablet"}]},
+{name:"Ambroxol",cat:"Respirasi",indikasi:"Mukolitik pada batuk berdahak",basis:"day",doseLow:1.2,doseHigh:1.6,timesPerDay:3,maxDay:120,route:"Oral",
+ sediaan:[{brand:"Mucopect",bentuk:"Sirup 15mg/5ml",konsentrasi:15,per:5,unit:"ml"},{brand:"Epexol",bentuk:"Sirup 15mg/5ml",konsentrasi:15,per:5,unit:"ml"},{brand:"Ambroxol generik",bentuk:"Tablet 30mg",konsentrasi:30,per:1,unit:"tablet"}]},
+{name:"Amikacin",cat:"Antibiotik",indikasi:"Infeksi bakteri gram negatif berat",basis:"day",doseLow:15,doseHigh:15,timesPerDay:1,maxDay:1500,route:"IV/IM",
+ sediaan:[{brand:"Amikacin generik",bentuk:"Injeksi 500mg/2ml",konsentrasi:500,per:2,unit:"ml"},{brand:"Mikasin",bentuk:"Injeksi 500mg/2ml",konsentrasi:500,per:2,unit:"ml"}]},
+{name:"Amitriptyline",cat:"Psikiatri & Neurologi",indikasi:"Depresi, nyeri neuropatik",basis:"fixed",fixedNote:"Mulai 25mg malam hari, titrasi sampai 150mg/hari",route:"Oral",
+ sediaan:[{brand:"Amitriptyline generik",bentuk:"Tablet 25mg",konsentrasi:25,per:1,unit:"tablet"}]},
+{name:"Amlodipine",cat:"Jantung — Khusus",indikasi:"Hipertensi, angina (penghambat kanal kalsium)",basis:"fixed",fixedNote:"5-10mg, 1x/hari",route:"Oral",
+ sediaan:[{brand:"Norvask",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"},{brand:"Tensivask",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Amlodipine generik",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"}]},
+{name:"Amoxicillin",cat:"Antibiotik",indikasi:"Infeksi bakteri saluran napas, THT, kulit",basis:"day",doseLow:25,doseHigh:50,timesPerDay:3,maxDay:4000,route:"Oral",
+ sediaan:[{brand:"Amoxsan",bentuk:"Sirup 125mg/5ml",konsentrasi:125,per:5,unit:"ml"},{brand:"Yamoxsil",bentuk:"Sirup 250mg/5ml",konsentrasi:250,per:5,unit:"ml"},{brand:"Amoxicillin generik",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"},{brand:"Penamox",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"}]},
+{name:"Amoxicillin-Clavulanate",cat:"Antibiotik",indikasi:"Infeksi resisten beta-laktamase (ISK, ISPA, kulit)",basis:"day",doseLow:25,doseHigh:45,timesPerDay:3,maxDay:3000,note:"dosis dihitung dari komponen amoksisilin",route:"Oral",
+ sediaan:[{brand:"Augmentin",bentuk:"Sirup 250mg/5ml",konsentrasi:250,per:5,unit:"ml"},{brand:"Clavamox Forte",bentuk:"Tablet 1000mg",konsentrasi:1000,per:1,unit:"tablet"},{brand:"Co-amoxiclav generik",bentuk:"Tablet 625mg",konsentrasi:625,per:1,unit:"tablet"}]},
+{name:"Ampicillin",cat:"Antibiotik",indikasi:"Infeksi bakteri gram positif & negatif",basis:"day",doseLow:50,doseHigh:100,timesPerDay:4,maxDay:4000,route:"IV/IM/Oral",
+ sediaan:[{brand:"Ampicillin generik",bentuk:"Injeksi vial 1000mg",konsentrasi:1000,per:1,unit:"vial"},{brand:"Penbritin",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"}]},
+{name:"Antasida DOEN",cat:"Gastrointestinal & Antiemetik",indikasi:"Dispepsia, gastritis ringan",basis:"fixed",fixedNote:"1-2 tablet kunyah atau 10-15ml suspensi, 3-4x/hari (sebelum makan & sebelum tidur)",route:"Oral",
+ sediaan:[{brand:"Antasida DOEN",bentuk:"Tablet kunyah",konsentrasi:0,per:1,unit:"tablet"},{brand:"Promag",bentuk:"Tablet kunyah",konsentrasi:0,per:1,unit:"tablet"},{brand:"Mylanta",bentuk:"Suspensi 200ml",konsentrasi:0,per:15,unit:"ml"},{brand:"Polysilane",bentuk:"Suspensi 100ml",konsentrasi:0,per:15,unit:"ml"}]},
+{name:"Asam Mefenamat",cat:"Analgesik & Antipiretik",indikasi:"Nyeri ringan-sedang (dewasa: 500mg 3x/hari)",basis:"dose",doseLow:6.5,doseHigh:6.5,timesPerDay:3,maxDay:1500,note:"dosis anak; dewasa fixed 500mg 3x/hari",route:"Oral",
+ sediaan:[{brand:"Mefinal",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"},{brand:"Ponstan",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"},{brand:"Mefix",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"},{brand:"Mefentan",bentuk:"Sirup 50mg/5ml",konsentrasi:50,per:5,unit:"ml"}]},
+{name:"Asam Traneksamat",cat:"Bedah — Khusus",indikasi:"Perdarahan, profilaksis perdarahan perioperatif",basis:"dose",doseLow:10,doseHigh:15,timesPerDay:3,maxDay:2000,route:"IV/Oral",
+ sediaan:[{brand:"Kalnex",bentuk:"Injeksi 500mg/5ml",konsentrasi:500,per:5,unit:"ml"},{brand:"Transamin",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"},{brand:"Asam Traneksamat generik",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Aspirin (Asetosal)",cat:"Jantung — Khusus",indikasi:"Sindrom koroner akut, antiplatelet",basis:"fixed",fixedNote:"Loading 160-325mg dikunyah saat ACS, maintenance 80-100mg/hari",route:"Oral",
+ sediaan:[{brand:"Aspilet",bentuk:"Tablet 80mg",konsentrasi:80,per:1,unit:"tablet"},{brand:"Ascardia",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"},{brand:"Cardio Aspirin",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"}]},
+{name:"Atorvastatin",cat:"Jantung — Khusus",indikasi:"Dislipidemia, pencegahan kardiovaskular",basis:"fixed",fixedNote:"10-40mg, 1x/hari malam",route:"Oral",
+ sediaan:[{brand:"Lipitor",bentuk:"Tablet 20mg",konsentrasi:20,per:1,unit:"tablet"},{brand:"Atorvastatin generik",bentuk:"Tablet 20mg",konsentrasi:20,per:1,unit:"tablet"},{brand:"Avastatin",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"}]},
+{name:"Azithromycin",cat:"Antibiotik",indikasi:"Infeksi saluran napas, kulit (makrolida)",basis:"day",doseLow:10,doseHigh:10,timesPerDay:1,maxDay:500,note:"selama 3-5 hari",route:"Oral",
+ sediaan:[{brand:"Zithromax",bentuk:"Sirup 200mg/5ml",konsentrasi:200,per:5,unit:"ml"},{brand:"Azithromycin generik",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Zibramax",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Betahistine",cat:"Psikiatri & Neurologi",indikasi:"Vertigo, penyakit Meniere",basis:"fixed",fixedNote:"24mg 2x/hari atau 8mg 3x/hari",route:"Oral",
+ sediaan:[{brand:"Merislon",bentuk:"Tablet 6mg",konsentrasi:6,per:1,unit:"tablet"},{brand:"Betahistine generik",bentuk:"Tablet 24mg",konsentrasi:24,per:1,unit:"tablet"}]},
+{name:"Bisoprolol",cat:"Jantung — Khusus",indikasi:"Gagal jantung kronik, hipertensi, kontrol laju nadi",basis:"fixed",fixedNote:"Mulai 1.25-2.5mg/hari, titrasi tiap 1-2 minggu (maks 10mg/hari)",route:"Oral",
+ sediaan:[{brand:"Concor",bentuk:"Tablet 2.5mg",konsentrasi:2.5,per:1,unit:"tablet"},{brand:"Concor",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"},{brand:"Maintate",bentuk:"Tablet 2.5mg",konsentrasi:2.5,per:1,unit:"tablet"}]},
+{name:"Bisacodyl",cat:"Gastrointestinal & Antiemetik",indikasi:"Konstipasi (laksatif stimulan)",basis:"fixed",fixedNote:"5-10mg oral malam hari, atau 10mg suppositoria",route:"Oral/Rektal",
+ sediaan:[{brand:"Dulcolax",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"},{brand:"Dulcolax",bentuk:"Suppositoria 10mg",konsentrasi:10,per:1,unit:"supp"},{brand:"Laxana",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"}]},
+{name:"Budesonide (Nebul)",cat:"Respirasi",indikasi:"Asma, bronkospasme (kortikosteroid inhalasi)",basis:"fixed",fixedNote:"0.5-1mg per nebulisasi, 2x/hari",route:"Inhalasi",
+ sediaan:[{brand:"Pulmicort",bentuk:"Respules 0.5mg/2ml",konsentrasi:0.5,per:2,unit:"ml"}]},
+{name:"Captopril",cat:"Jantung — Khusus",indikasi:"Hipertensi, gagal jantung, krisis hipertensi",basis:"fixed",fixedNote:"12.5-25mg 2-3x/hari oral; 25mg sublingual untuk krisis hipertensi",route:"Oral/Sublingual",
+ sediaan:[{brand:"Captopril generik",bentuk:"Tablet 25mg",konsentrasi:25,per:1,unit:"tablet"},{brand:"Tensicap",bentuk:"Tablet 25mg",konsentrasi:25,per:1,unit:"tablet"},{brand:"Capoten",bentuk:"Tablet 12.5mg",konsentrasi:12.5,per:1,unit:"tablet"}]},
+{name:"Cefadroxil",cat:"Antibiotik",indikasi:"Infeksi kulit & jaringan lunak, ISK",basis:"day",doseLow:25,doseHigh:50,timesPerDay:2,maxDay:2000,route:"Oral",
+ sediaan:[{brand:"Cefat",bentuk:"Sirup 125mg/5ml",konsentrasi:125,per:5,unit:"ml"},{brand:"Cefadroxil generik",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"},{brand:"Velios",bentuk:"Kapsul 500mg",konsentrasi:500,per:1,unit:"kapsul"}]},
+{name:"Cefazolin",cat:"Bedah — Khusus",indikasi:"Profilaksis antibiotik pra-operasi",basis:"dose",doseLow:20,doseHigh:30,timesPerDay:1,maxDay:2000,note:"dosis tunggal 30-60 menit sebelum insisi, ulang bila operasi >4 jam",route:"IV",
+ sediaan:[{brand:"Cefazolin generik",bentuk:"Injeksi vial 1000mg",konsentrasi:1000,per:1,unit:"vial"},{brand:"Cefacidal",bentuk:"Injeksi vial 1000mg",konsentrasi:1000,per:1,unit:"vial"}]},
+{name:"Cefixime",cat:"Antibiotik",indikasi:"ISK, infeksi saluran napas",basis:"day",doseLow:8,doseHigh:8,timesPerDay:2,maxDay:400,route:"Oral",
+ sediaan:[{brand:"Cefspan",bentuk:"Sirup 100mg/5ml",konsentrasi:100,per:5,unit:"ml"},{brand:"Fixiphar",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"},{brand:"Cefixime generik",bentuk:"Kapsul 200mg",konsentrasi:200,per:1,unit:"kapsul"}]},
+{name:"Cefoperazone-Sulbactam",cat:"Antibiotik",indikasi:"Infeksi berat (rumah sakit)",basis:"day",doseLow:40,doseHigh:80,timesPerDay:2,maxDay:8000,route:"IV",
+ sediaan:[{brand:"Bactesyn",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"},{brand:"Cefope",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"}]},
+{name:"Cefotaxime",cat:"Antibiotik",indikasi:"Infeksi berat (rumah sakit)",basis:"day",doseLow:100,doseHigh:150,timesPerDay:3,maxDay:12000,route:"IV",
+ sediaan:[{brand:"Claforan",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"},{brand:"Cefotaxime generik",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"}]},
+{name:"Cefpodoxime",cat:"Antibiotik",indikasi:"Infeksi saluran napas, ISK",basis:"day",doseLow:8,doseHigh:10,timesPerDay:2,maxDay:400,route:"Oral",
+ sediaan:[{brand:"Cefpotik",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"},{brand:"Stabixin",bentuk:"Tablet 100mg",konsentrasi:100,per:1,unit:"tablet"}]},
+{name:"Ceftriaxone",cat:"Antibiotik",indikasi:"Infeksi berat, sepsis, profilaksis bedah",basis:"day",doseLow:50,doseHigh:100,timesPerDay:2,maxDay:4000,route:"IV/IM",
+ sediaan:[{brand:"Rocephin",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"},{brand:"Cefax",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"},{brand:"Broadced",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"},{brand:"Ceftriaxone generik",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"}]},
+{name:"Cefuroxime",cat:"Antibiotik",indikasi:"Infeksi saluran napas, ISK, kulit",basis:"day",doseLow:20,doseHigh:30,timesPerDay:2,maxDay:1500,route:"Oral/IV",
+ sediaan:[{brand:"Zinnat",bentuk:"Sirup 125mg/5ml",konsentrasi:125,per:5,unit:"ml"},{brand:"Cefuroxime generik",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Cetirizine",cat:"Antihistamin",indikasi:"Alergi, rhinitis alergi, urtikaria",basis:"fixed",fixedNote:"Dewasa & anak ≥6th: 10mg 1x/hari; anak 2-5th: 2.5-5mg 1x/hari",route:"Oral",
+ sediaan:[{brand:"Cerini",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Estin",bentuk:"Sirup 5mg/5ml",konsentrasi:5,per:5,unit:"ml"},{brand:"Cetirizine generik",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"}]},
+{name:"Chlorpheniramine Maleate (CTM)",cat:"Antihistamin",indikasi:"Alergi, gatal, rhinitis",basis:"day",doseLow:0.35,doseHigh:0.35,timesPerDay:4,maxDay:40,route:"Oral",
+ sediaan:[{brand:"CTM generik",bentuk:"Tablet 4mg",konsentrasi:4,per:1,unit:"tablet"},{brand:"Alleron",bentuk:"Tablet 4mg",konsentrasi:4,per:1,unit:"tablet"}]},
+{name:"Ciprofloxacin",cat:"Antibiotik",indikasi:"ISK, infeksi gastrointestinal, tifoid (dewasa)",basis:"fixed",fixedNote:"500-750mg, 2x/hari (hindari pada anak kecuali indikasi khusus)",route:"Oral/IV",
+ sediaan:[{brand:"Baquinor",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Ciproxin",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Quinobiotic",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Clindamycin",cat:"Antibiotik",indikasi:"Infeksi anaerob, kulit, gigi",basis:"day",doseLow:10,doseHigh:30,timesPerDay:3,maxDay:1800,route:"Oral/IV",
+ sediaan:[{brand:"Clinmas",bentuk:"Kapsul 300mg",konsentrasi:300,per:1,unit:"kapsul"},{brand:"Dalacin C",bentuk:"Kapsul 300mg",konsentrasi:300,per:1,unit:"kapsul"},{brand:"Clindamycin generik",bentuk:"Injeksi 600mg/4ml",konsentrasi:600,per:4,unit:"ml"}]},
+{name:"Clopidogrel",cat:"Jantung — Khusus",indikasi:"Sindrom koroner akut, antiplatelet ganda",basis:"fixed",fixedNote:"Loading 300-600mg, maintenance 75mg/hari",route:"Oral",
+ sediaan:[{brand:"Plavix",bentuk:"Tablet 75mg",konsentrasi:75,per:1,unit:"tablet"},{brand:"CPG",bentuk:"Tablet 75mg",konsentrasi:75,per:1,unit:"tablet"},{brand:"Clopidogrel generik",bentuk:"Tablet 75mg",konsentrasi:75,per:1,unit:"tablet"}]},
+{name:"Codeine",cat:"Analgesik & Antipiretik",indikasi:"Nyeri ringan-sedang, antitusif kuat",basis:"fixed",fixedNote:"10-20mg tiap 4-6 jam, maksimal 240mg/hari",route:"Oral",
+ sediaan:[{brand:"Codikaf",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Codipront",bentuk:"Kapsul (kombinasi)",konsentrasi:0,per:1,unit:"kapsul"}]},
+{name:"Dexamethasone",cat:"Kortikosteroid",indikasi:"Antiinflamasi, edema serebral, croup, antiemetik adjuvan",basis:"day",doseLow:0.1,doseHigh:0.6,timesPerDay:3,maxDay:40,route:"IV/IM/Oral",
+ sediaan:[{brand:"Dexamethasone generik",bentuk:"Injeksi 5mg/ml",konsentrasi:5,per:1,unit:"ml"},{brand:"Kalmethasone",bentuk:"Tablet 0.5mg",konsentrasi:0.5,per:1,unit:"tablet"},{brand:"Cortidex",bentuk:"Tablet 0.5mg",konsentrasi:0.5,per:1,unit:"tablet"}]},
+{name:"Dextromethorphan",cat:"Respirasi",indikasi:"Batuk kering (antitusif)",basis:"fixed",fixedNote:"10-20mg tiap 4 jam, maksimal 120mg/hari",route:"Oral",
+ sediaan:[{brand:"Vicks Formula 44",bentuk:"Sirup",konsentrasi:0,per:1,unit:"ml"},{brand:"Woods' Antitussive",bentuk:"Sirup",konsentrasi:0,per:1,unit:"ml"},{brand:"Komix",bentuk:"Sirup sachet",konsentrasi:0,per:1,unit:"ml"}]},
+{name:"Diazepam",cat:"Antikonvulsan & Sedasi",indikasi:"Kejang akut, sedasi, status epileptikus",basis:"dose",doseLow:0.3,doseHigh:0.5,timesPerDay:1,maxDay:20,note:"dosis tunggal, dapat diulang maksimal 2x",route:"IV/Rektal",
+ sediaan:[{brand:"Stesolid",bentuk:"Rectal tube 5mg/2.5ml (BB<10kg)",konsentrasi:5,per:2.5,unit:"ml"},{brand:"Stesolid",bentuk:"Rectal tube 10mg/2.5ml (BB≥10kg)",konsentrasi:10,per:2.5,unit:"ml"},{brand:"Valisanbe",bentuk:"Injeksi 5mg/ml",konsentrasi:5,per:1,unit:"ml"},{brand:"Validex",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"}]},
+{name:"Diclofenac",cat:"Analgesik & Antipiretik",indikasi:"Nyeri, antiinflamasi (NSAID)",basis:"fixed",fixedNote:"50mg 2-3x/hari setelah makan",route:"Oral",
+ sediaan:[{brand:"Voltaren",bentuk:"Tablet 50mg",konsentrasi:50,per:1,unit:"tablet"},{brand:"Cataflam",bentuk:"Tablet 50mg",konsentrasi:50,per:1,unit:"tablet"},{brand:"Neo Rheumacyl",bentuk:"Tablet",konsentrasi:0,per:1,unit:"tablet"}]},
+{name:"Digoxin",cat:"Jantung — Khusus",indikasi:"Gagal jantung dengan fibrilasi atrium, kontrol laju nadi",basis:"day",doseLow:0.01,doseHigh:0.015,timesPerDay:1,maxDay:0.5,note:"dosis rumatan",route:"Oral/IV",
+ sediaan:[{brand:"Fargoxin",bentuk:"Tablet 0.25mg",konsentrasi:0.25,per:1,unit:"tablet"},{brand:"Digoxin generik",bentuk:"Injeksi 0.25mg/ml",konsentrasi:0.25,per:1,unit:"ml"}]},
+{name:"Domperidone",cat:"Gastrointestinal & Antiemetik",indikasi:"Mual, muntah, gangguan motilitas lambung",basis:"dose",doseLow:0.3,doseHigh:0.3,timesPerDay:3,maxDay:30,route:"Oral",
+ sediaan:[{brand:"Vometa",bentuk:"Sirup 5mg/5ml",konsentrasi:5,per:5,unit:"ml"},{brand:"Motilium",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Domperidone generik",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"}]},
+{name:"Doxycycline",cat:"Antibiotik",indikasi:"Infeksi saluran napas, akne, malaria profilaksis",basis:"fixed",fixedNote:"100mg 2x/hari (dewasa & anak >8 tahun)",route:"Oral",
+ sediaan:[{brand:"Doxycycline generik",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"},{brand:"Interdoxin",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"}]},
+{name:"Dulcolactol (Lactulose)",cat:"Gastrointestinal & Antiemetik",indikasi:"Konstipasi (laksatif osmotik)",basis:"fixed",fixedNote:"15-30ml/hari, dapat ditingkatkan sesuai respons",route:"Oral",
+ sediaan:[{brand:"Dulcolactol",bentuk:"Sirup",konsentrasi:0,per:15,unit:"ml"},{brand:"Lactulax",bentuk:"Sirup",konsentrasi:0,per:15,unit:"ml"},{brand:"Duphalac",bentuk:"Sirup",konsentrasi:0,per:15,unit:"ml"}]},
+{name:"Enoxaparin",cat:"Bedah — Khusus",indikasi:"Profilaksis/terapi trombosis vena dalam",basis:"dose",doseLow:1,doseHigh:1.5,timesPerDay:2,maxDay:180,route:"SC",
+ sediaan:[{brand:"Lovenox",bentuk:"Prefilled syringe 40mg/0.4ml",konsentrasi:40,per:0.4,unit:"ml"},{brand:"Lovenox",bentuk:"Prefilled syringe 60mg/0.6ml",konsentrasi:60,per:0.6,unit:"ml"},{brand:"Enoxaparin generik",bentuk:"Prefilled syringe 40mg/0.4ml",konsentrasi:40,per:0.4,unit:"ml"}]},
+{name:"Erythromycin",cat:"Antibiotik",indikasi:"Infeksi saluran napas, alternatif penisilin",basis:"day",doseLow:30,doseHigh:50,timesPerDay:4,maxDay:2000,route:"Oral",
+ sediaan:[{brand:"Erysanbe",bentuk:"Sirup 200mg/5ml",konsentrasi:200,per:5,unit:"ml"},{brand:"Eryfar",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Erythromycin generik",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Esomeprazole",cat:"Gastrointestinal & Antiemetik",indikasi:"GERD, ulkus peptikum (PPI)",basis:"fixed",fixedNote:"20-40mg 1x/hari sebelum makan",route:"Oral/IV",
+ sediaan:[{brand:"Nexium",bentuk:"Tablet 20mg",konsentrasi:20,per:1,unit:"tablet"},{brand:"Esomeprazole generik",bentuk:"Tablet 40mg",konsentrasi:40,per:1,unit:"tablet"},{brand:"Inhipraz",bentuk:"Tablet 40mg",konsentrasi:40,per:1,unit:"tablet"}]},
+{name:"Etoricoxib",cat:"Analgesik & Antipiretik",indikasi:"Nyeri, antiinflamasi (NSAID COX-2 selektif)",basis:"fixed",fixedNote:"60-120mg 1x/hari",route:"Oral",
+ sediaan:[{brand:"Arcoxia",bentuk:"Tablet 60mg",konsentrasi:60,per:1,unit:"tablet"},{brand:"Arcoxia",bentuk:"Tablet 90mg",konsentrasi:90,per:1,unit:"tablet"}]},
+{name:"Famotidine",cat:"Gastrointestinal & Antiemetik",indikasi:"Gastritis, ulkus peptikum (H2 blocker)",basis:"dose",doseLow:0.5,doseHigh:0.5,timesPerDay:2,maxDay:80,route:"Oral/IV",
+ sediaan:[{brand:"Gaster",bentuk:"Tablet 20mg",konsentrasi:20,per:1,unit:"tablet"},{brand:"Famotidine generik",bentuk:"Injeksi 20mg/2ml",konsentrasi:20,per:2,unit:"ml"}]},
+{name:"Fenofibrate",cat:"Jantung — Khusus",indikasi:"Dislipidemia (trigliserida tinggi)",basis:"fixed",fixedNote:"100-300mg/hari saat makan",route:"Oral",
+ sediaan:[{brand:"Lipanthyl",bentuk:"Tablet 300mg",konsentrasi:300,per:1,unit:"tablet"},{brand:"Fenofibrate generik",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"}]},
+{name:"Fluconazole",cat:"Antifungal",indikasi:"Infeksi jamur sistemik/kandidiasis",basis:"day",doseLow:3,doseHigh:6,timesPerDay:1,maxDay:400,route:"Oral/IV",
+ sediaan:[{brand:"Diflucan",bentuk:"Kapsul 150mg",konsentrasi:150,per:1,unit:"kapsul"},{brand:"Fluconazole generik",bentuk:"Kapsul 150mg",konsentrasi:150,per:1,unit:"kapsul"},{brand:"Cancid",bentuk:"Kapsul 150mg",konsentrasi:150,per:1,unit:"kapsul"}]},
+{name:"Furosemide",cat:"Jantung — Khusus",indikasi:"Edema, overload cairan, gagal jantung kongestif",basis:"dose",doseLow:1,doseHigh:2,timesPerDay:2,maxDay:600,route:"IV/Oral",
+ sediaan:[{brand:"Lasix",bentuk:"Injeksi 10mg/ml",konsentrasi:10,per:1,unit:"ml"},{brand:"Farsix",bentuk:"Tablet 40mg",konsentrasi:40,per:1,unit:"tablet"},{brand:"Furosemide generik",bentuk:"Tablet 40mg",konsentrasi:40,per:1,unit:"tablet"}]},
+{name:"Gentamicin",cat:"Antibiotik",indikasi:"Infeksi gram negatif berat",basis:"day",doseLow:5,doseHigh:7,timesPerDay:1,maxDay:480,route:"IV/IM",
+ sediaan:[{brand:"Gentamicin generik",bentuk:"Injeksi 80mg/2ml",konsentrasi:80,per:2,unit:"ml"},{brand:"Sagestam",bentuk:"Injeksi 80mg/2ml",konsentrasi:80,per:2,unit:"ml"}]},
+{name:"Glibenclamide",cat:"Endokrin & Metabolik",indikasi:"Diabetes melitus tipe 2 (sulfonilurea)",basis:"fixed",fixedNote:"2.5-15mg/hari, 1-2x/hari sebelum makan",route:"Oral",
+ sediaan:[{brand:"Daonil",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"},{brand:"Glibenclamide generik",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"}]},
+{name:"Glimepiride",cat:"Endokrin & Metabolik",indikasi:"Diabetes melitus tipe 2",basis:"fixed",fixedNote:"1-4mg 1x/hari sebelum makan pagi",route:"Oral",
+ sediaan:[{brand:"Amaryl",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"},{brand:"Glimepiride generik",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"}]},
+{name:"Haloperidol",cat:"Psikiatri & Neurologi",indikasi:"Psikosis akut, agitasi berat",basis:"fixed",fixedNote:"0.5-5mg, 2-3x/hari",route:"Oral/IM",
+ sediaan:[{brand:"Serenace",bentuk:"Tablet 1.5mg",konsentrasi:1.5,per:1,unit:"tablet"},{brand:"Haloperidol generik",bentuk:"Injeksi 5mg/ml",konsentrasi:5,per:1,unit:"ml"}]},
+{name:"HCT (Hidroklorotiazid)",cat:"Jantung — Khusus",indikasi:"Hipertensi (diuretik tiazid)",basis:"fixed",fixedNote:"12.5-25mg 1x/hari pagi",route:"Oral",
+ sediaan:[{brand:"HCT generik",bentuk:"Tablet 25mg",konsentrasi:25,per:1,unit:"tablet"}]},
+{name:"Heparin",cat:"Bedah — Khusus",indikasi:"Profilaksis trombosis vena dalam pasca operasi",basis:"fixed",fixedNote:"Profilaksis 5000 IU SC tiap 8-12 jam (dosis tetap)",route:"SC",
+ sediaan:[{brand:"Inviclot",bentuk:"Injeksi 5000 IU/ml",konsentrasi:5000,per:1,unit:"ml"},{brand:"Heparin generik",bentuk:"Injeksi 5000 IU/ml",konsentrasi:5000,per:1,unit:"ml"}]},
+{name:"Ibuprofen",cat:"Analgesik & Antipiretik",indikasi:"Demam, nyeri, antiinflamasi",basis:"dose",doseLow:5,doseHigh:10,timesPerDay:3,maxDay:2400,route:"Oral",
+ sediaan:[{brand:"Proris",bentuk:"Sirup 100mg/5ml",konsentrasi:100,per:5,unit:"ml"},{brand:"Bufect",bentuk:"Sirup 100mg/5ml",konsentrasi:100,per:5,unit:"ml"},{brand:"Farsifen",bentuk:"Tablet 400mg",konsentrasi:400,per:1,unit:"tablet"}]},
+{name:"Ipratropium Bromide (Nebul)",cat:"Respirasi",indikasi:"Bronkospasme, PPOK, asma",basis:"fixed",fixedNote:"250-500mcg per nebulisasi, dapat dikombinasi dengan salbutamol",route:"Inhalasi",
+ sediaan:[{brand:"Atrovent",bentuk:"Nebul 250mcg/ml",konsentrasi:250,per:1,unit:"ml"},{brand:"Combivent UDV",bentuk:"Nebul kombinasi ipratropium+salbutamol",konsentrasi:0,per:1,unit:"ml"}]},
+{name:"Itraconazole",cat:"Antifungal",indikasi:"Infeksi jamur sistemik",basis:"fixed",fixedNote:"100-200mg, 1-2x/hari",route:"Oral",
+ sediaan:[{brand:"Sporanox",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"},{brand:"Itraconazole generik",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"}]},
+{name:"Ketoconazole",cat:"Antifungal",indikasi:"Infeksi jamur kulit & sistemik",basis:"fixed",fixedNote:"200mg 1x/hari saat makan",route:"Oral",
+ sediaan:[{brand:"Nizoral",bentuk:"Tablet 200mg",konsentrasi:200,per:1,unit:"tablet"},{brand:"Ketoconazole generik",bentuk:"Tablet 200mg",konsentrasi:200,per:1,unit:"tablet"}]},
+{name:"Ketorolac",cat:"Analgesik & Antipiretik",indikasi:"Nyeri akut sedang-berat (pasca operasi)",basis:"dose",doseLow:0.5,doseHigh:1,timesPerDay:3,maxDay:120,note:"maksimal pemberian 5 hari",route:"IV/IM",
+ sediaan:[{brand:"Toradol",bentuk:"Injeksi 30mg/ml",konsentrasi:30,per:1,unit:"ml"},{brand:"Ketorolac generik",bentuk:"Injeksi 30mg/ml",konsentrasi:30,per:1,unit:"ml"}]},
+{name:"Lansoprazole",cat:"Gastrointestinal & Antiemetik",indikasi:"GERD, ulkus peptikum (PPI)",basis:"fixed",fixedNote:"15-30mg 1x/hari sebelum makan",route:"Oral",
+ sediaan:[{brand:"Lanz",bentuk:"Kapsul 30mg",konsentrasi:30,per:1,unit:"kapsul"},{brand:"Prosogan",bentuk:"Kapsul 30mg",konsentrasi:30,per:1,unit:"kapsul"},{brand:"Lansoprazole generik",bentuk:"Kapsul 30mg",konsentrasi:30,per:1,unit:"kapsul"}]},
+{name:"Levofloxacin",cat:"Antibiotik",indikasi:"Infeksi saluran napas, ISK (dewasa)",basis:"fixed",fixedNote:"500-750mg, 1x/hari",route:"Oral/IV",
+ sediaan:[{brand:"Cravit",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Levocin",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Farlev",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Loperamide",cat:"Gastrointestinal & Antiemetik",indikasi:"Diare akut (dewasa)",basis:"fixed",fixedNote:"2mg setiap diare, maksimal 8 tablet/hari",route:"Oral",
+ sediaan:[{brand:"Lodia",bentuk:"Kapsul 2mg",konsentrasi:2,per:1,unit:"kapsul"},{brand:"Imodium",bentuk:"Kapsul 2mg",konsentrasi:2,per:1,unit:"kapsul"},{brand:"Loperamide generik",bentuk:"Kapsul 2mg",konsentrasi:2,per:1,unit:"kapsul"}]},
+{name:"Loratadine",cat:"Antihistamin",indikasi:"Alergi, rhinitis alergi",basis:"fixed",fixedNote:"Dewasa & anak ≥6th: 10mg 1x/hari; anak 2-5th: 5mg 1x/hari",route:"Oral",
+ sediaan:[{brand:"Clarityne",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Loratadine generik",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Loraderm",bentuk:"Sirup 5mg/5ml",konsentrasi:5,per:5,unit:"ml"}]},
+{name:"Meropenem",cat:"Antibiotik",indikasi:"Infeksi berat multiresisten (rumah sakit)",basis:"dose",doseLow:10,doseHigh:20,timesPerDay:3,maxDay:6000,route:"IV",
+ sediaan:[{brand:"Meropenem generik",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"},{brand:"Mepem",bentuk:"Injeksi vial 1g",konsentrasi:1000,per:1,unit:"vial"}]},
+{name:"Methylergometrine",cat:"Obgyn — Khusus",indikasi:"Pencegahan & terapi perdarahan pasca persalinan (atonia uteri)",basis:"fixed",fixedNote:"0.2mg IM/IV, dapat diulang tiap 2-4 jam (maksimal 5 dosis). Kontraindikasi pada hipertensi/preeklampsia.",route:"IM/IV",
+ sediaan:[{brand:"Methergin",bentuk:"Injeksi 0.2mg/ml",konsentrasi:0.2,per:1,unit:"ml"},{brand:"Methergin",bentuk:"Tablet 0.125mg",konsentrasi:0.125,per:1,unit:"tablet"}]},
+{name:"Methylprednisolone",cat:"Kortikosteroid",indikasi:"Antiinflamasi, eksaserbasi asma/PPOK",basis:"day",doseLow:0.5,doseHigh:1.7,timesPerDay:2,maxDay:1000,route:"IV/Oral",
+ sediaan:[{brand:"Medrol",bentuk:"Tablet 4mg",konsentrasi:4,per:1,unit:"tablet"},{brand:"Solu-Medrol",bentuk:"Injeksi vial 125mg",konsentrasi:125,per:1,unit:"vial"},{brand:"Hexilon",bentuk:"Tablet 4mg",konsentrasi:4,per:1,unit:"tablet"}]},
+{name:"Metformin",cat:"Endokrin & Metabolik",indikasi:"Diabetes melitus tipe 2 (biguanid)",basis:"fixed",fixedNote:"500-2000mg/hari terbagi 2-3x, saat/setelah makan",route:"Oral",
+ sediaan:[{brand:"Glucophage",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Metformin generik",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Glumin",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Metoclopramide",cat:"Gastrointestinal & Antiemetik",indikasi:"Mual, muntah, gangguan motilitas lambung",basis:"dose",doseLow:0.1,doseHigh:0.15,timesPerDay:3,maxDay:30,route:"IV/Oral",
+ sediaan:[{brand:"Primperan",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Metoclopramide generik",bentuk:"Injeksi 10mg/2ml",konsentrasi:10,per:2,unit:"ml"},{brand:"Vomceran",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"}]},
+{name:"Metronidazole",cat:"Antibiotik",indikasi:"Infeksi anaerob, amuba, protozoa",basis:"dose",doseLow:7.5,doseHigh:10,timesPerDay:3,maxDay:4000,route:"Oral/IV",
+ sediaan:[{brand:"Flagyl",bentuk:"Sirup 125mg/5ml",konsentrasi:125,per:5,unit:"ml"},{brand:"Trichodazol",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Metronidazole generik",bentuk:"Infus 500mg/100ml",konsentrasi:500,per:100,unit:"ml"}]},
+{name:"MgSO4 (Magnesium Sulfat)",cat:"Obgyn — Khusus",indikasi:"Profilaksis & terapi kejang pada preeklampsia berat/eklampsia",basis:"fixed",fixedNote:"Loading dose 4 gram IV pelan (≥15 menit), lanjut rumatan 1-2 gram/jam (dosis standar dewasa, tidak dihitung per kgBB)",route:"IV",
+ sediaan:[{brand:"MgSO4 20%",bentuk:"Injeksi 200mg/ml (ampul 25ml)",konsentrasi:200,per:1,unit:"ml"},{brand:"MgSO4 40%",bentuk:"Injeksi 400mg/ml (ampul 25ml)",konsentrasi:400,per:1,unit:"ml"}]},
+{name:"Naproxen",cat:"Analgesik & Antipiretik",indikasi:"Nyeri, antiinflamasi (NSAID)",basis:"fixed",fixedNote:"250-500mg, 2x/hari",route:"Oral",
+ sediaan:[{brand:"Naprex",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Xenifar",bentuk:"Tablet 250mg",konsentrasi:250,per:1,unit:"tablet"}]},
+{name:"Nifedipine",cat:"Obgyn — Khusus",indikasi:"Tokolitik pada ancaman persalinan preterm, hipertensi",basis:"fixed",fixedNote:"Loading 20mg oral, ulang 20mg/30 menit (maks 3x), lanjut 10-20mg tiap 6-8 jam",route:"Oral",
+ sediaan:[{brand:"Adalat Oros",bentuk:"Tablet 30mg",konsentrasi:30,per:1,unit:"tablet"},{brand:"Nifedipine generik",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"}]},
+{name:"Nitroglycerin (ISDN)",cat:"Jantung — Khusus",indikasi:"Angina pektoris akut",basis:"fixed",fixedNote:"5mg sublingual, dapat diulang tiap 5-10 menit (maksimal 3x)",route:"Sublingual/IV",
+ sediaan:[{brand:"Farsorbid",bentuk:"Tablet sublingual 5mg",konsentrasi:5,per:1,unit:"tablet"},{brand:"Isoket",bentuk:"Injeksi infus 1mg/ml",konsentrasi:1,per:1,unit:"ml"},{brand:"Nitrokaf",bentuk:"Kapsul retard 2.5mg",konsentrasi:2.5,per:1,unit:"kapsul"}]},
+{name:"Omeprazole",cat:"Gastrointestinal & Antiemetik",indikasi:"GERD, ulkus peptikum, stress ulcer prophylaxis",basis:"dose",doseLow:0.5,doseHigh:1,timesPerDay:2,maxDay:40,route:"IV/Oral",
+ sediaan:[{brand:"Losec",bentuk:"Injeksi vial 40mg",konsentrasi:40,per:1,unit:"vial"},{brand:"Pumpitor",bentuk:"Kapsul 20mg",konsentrasi:20,per:1,unit:"kapsul"},{brand:"Omeprazole generik",bentuk:"Kapsul 20mg",konsentrasi:20,per:1,unit:"kapsul"}]},
+{name:"Ondansetron",cat:"Gastrointestinal & Antiemetik",indikasi:"Mual, muntah (termasuk pasca operasi/kemoterapi)",basis:"dose",doseLow:0.1,doseHigh:0.15,timesPerDay:3,maxDay:24,route:"IV/Oral",
+ sediaan:[{brand:"Ondansetron generik",bentuk:"Injeksi 4mg/2ml",konsentrasi:4,per:2,unit:"ml"},{brand:"Norvom",bentuk:"Tablet 4mg",konsentrasi:4,per:1,unit:"tablet"},{brand:"Vonem",bentuk:"Tablet 8mg",konsentrasi:8,per:1,unit:"tablet"}]},
+{name:"Oxytocin",cat:"Obgyn — Khusus",indikasi:"Induksi/augmentasi persalinan, manajemen aktif kala III, atonia uteri",basis:"fixed",fixedNote:"Drip IV titrasi 2.5-20 IU dalam 500ml RL, mulai 8 tetes/menit dititrasi sesuai respons kontraksi",route:"IV drip/IM",
+ sediaan:[{brand:"Syntocinon",bentuk:"Injeksi 10 IU/ml",konsentrasi:10,per:1,unit:"ml"}]},
+{name:"Paracetamol",cat:"Analgesik & Antipiretik",indikasi:"Demam, nyeri ringan-sedang",basis:"dose",doseLow:10,doseHigh:15,timesPerDay:4,maxDay:4000,route:"Oral/Rektal",
+ sediaan:[{brand:"Sanmol",bentuk:"Sirup 120mg/5ml",konsentrasi:120,per:5,unit:"ml"},{brand:"Tempra",bentuk:"Sirup 160mg/5ml",konsentrasi:160,per:5,unit:"ml"},{brand:"Panadol",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Bodrex",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Termorex",bentuk:"Sirup 120mg/5ml",konsentrasi:120,per:5,unit:"ml"},{brand:"Pamol",bentuk:"Suppositoria 125mg",konsentrasi:125,per:1,unit:"supp"},{brand:"Sanmol Infus",bentuk:"Injeksi/Infus IV 1000mg/100ml",konsentrasi:1000,per:100,unit:"ml"},{brand:"Pricetam",bentuk:"Injeksi/Infus IV 1000mg/100ml",konsentrasi:1000,per:100,unit:"ml"}]},
+{name:"Phenytoin",cat:"Antikonvulsan & Sedasi",indikasi:"Kejang, rumatan anti-epilepsi",basis:"day",doseLow:5,doseHigh:8,timesPerDay:2,maxDay:1500,note:"dosis loading berbeda, konsultasikan",route:"IV/Oral",
+ sediaan:[{brand:"Dilantin",bentuk:"Kapsul 100mg",konsentrasi:100,per:1,unit:"kapsul"},{brand:"Phenytoin generik",bentuk:"Injeksi 50mg/ml",konsentrasi:50,per:1,unit:"ml"}]},
+{name:"Phenobarbital",cat:"Antikonvulsan & Sedasi",indikasi:"Kejang, epilepsi (dosis rumatan)",basis:"day",doseLow:3,doseHigh:5,timesPerDay:1,maxDay:300,route:"IV/Oral",
+ sediaan:[{brand:"Sibital",bentuk:"Injeksi 50mg/ml",konsentrasi:50,per:1,unit:"ml"},{brand:"Phenobarbital generik",bentuk:"Tablet 30mg",konsentrasi:30,per:1,unit:"tablet"}]},
+{name:"Piroxicam",cat:"Analgesik & Antipiretik",indikasi:"Nyeri, antiinflamasi (NSAID)",basis:"fixed",fixedNote:"10-20mg 1x/hari setelah makan",route:"Oral",
+ sediaan:[{brand:"Feldene",bentuk:"Kapsul 20mg",konsentrasi:20,per:1,unit:"kapsul"},{brand:"Piroxicam generik",bentuk:"Kapsul 10mg",konsentrasi:10,per:1,unit:"kapsul"}]},
+{name:"Prednisone",cat:"Kortikosteroid",indikasi:"Antiinflamasi, supresi imun",basis:"day",doseLow:0.5,doseHigh:2,timesPerDay:1,maxDay:80,route:"Oral",
+ sediaan:[{brand:"Prednisone generik",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"},{brand:"Eltazon",bentuk:"Tablet 5mg",konsentrasi:5,per:1,unit:"tablet"}]},
+{name:"Propranolol",cat:"Jantung — Khusus",indikasi:"Hipertensi, aritmia, migrain, tremor esensial",basis:"fixed",fixedNote:"10-40mg, 2-3x/hari",route:"Oral",
+ sediaan:[{brand:"Farmadral",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Propranolol generik",bentuk:"Tablet 40mg",konsentrasi:40,per:1,unit:"tablet"}]},
+{name:"Ranitidine",cat:"Gastrointestinal & Antiemetik",indikasi:"Gastritis, ulkus peptikum, profilaksis stress ulcer",basis:"dose",doseLow:2,doseHigh:4,timesPerDay:2,maxDay:300,route:"IV/Oral",
+ sediaan:[{brand:"Rantin",bentuk:"Injeksi 25mg/ml",konsentrasi:25,per:1,unit:"ml"},{brand:"Ranivel",bentuk:"Tablet 150mg",konsentrasi:150,per:1,unit:"tablet"},{brand:"Ranitidine generik",bentuk:"Tablet 150mg",konsentrasi:150,per:1,unit:"tablet"}]},
+{name:"Risperidone",cat:"Psikiatri & Neurologi",indikasi:"Skizofrenia, gangguan psikotik",basis:"fixed",fixedNote:"1-6mg/hari terbagi 1-2x",route:"Oral",
+ sediaan:[{brand:"Risperdal",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"},{brand:"Risperidone generik",bentuk:"Tablet 1mg",konsentrasi:1,per:1,unit:"tablet"}]},
+{name:"Salbutamol",cat:"Respirasi",indikasi:"Bronkospasme, asma, wheezing",basis:"dose",doseLow:0.1,doseHigh:0.15,timesPerDay:3,maxDay:20,note:"oral; nebul 2.5-5mg/dosis tiap 4-6 jam",route:"Oral/Inhalasi",
+ sediaan:[{brand:"Ventolin",bentuk:"Nebule 2.5mg/2.5ml",konsentrasi:2.5,per:2.5,unit:"ml"},{brand:"Suprasma",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"},{brand:"Farbivent",bentuk:"Nebul 5mg/2.5ml",konsentrasi:5,per:2.5,unit:"ml"}]},
+{name:"Simvastatin",cat:"Jantung — Khusus",indikasi:"Dislipidemia, pencegahan kardiovaskular",basis:"fixed",fixedNote:"10-40mg malam hari",route:"Oral",
+ sediaan:[{brand:"Simvask",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"},{brand:"Zocor",bentuk:"Tablet 20mg",konsentrasi:20,per:1,unit:"tablet"},{brand:"Simvastatin generik",bentuk:"Tablet 10mg",konsentrasi:10,per:1,unit:"tablet"}]},
+{name:"Spironolactone",cat:"Jantung — Khusus",indikasi:"Gagal jantung, hiperaldosteronisme (diuretik hemat kalium)",basis:"day",doseLow:1,doseHigh:3,timesPerDay:2,maxDay:200,route:"Oral",
+ sediaan:[{brand:"Aldactone",bentuk:"Tablet 25mg",konsentrasi:25,per:1,unit:"tablet"},{brand:"Letonal",bentuk:"Tablet 25mg",konsentrasi:25,per:1,unit:"tablet"}]},
+{name:"Sucralfate",cat:"Gastrointestinal & Antiemetik",indikasi:"Gastroprotektif, ulkus peptikum",basis:"fixed",fixedNote:"1 gram, 3-4x/hari, 1 jam sebelum makan",route:"Oral",
+ sediaan:[{brand:"Inpepsa",bentuk:"Suspensi 500mg/5ml",konsentrasi:500,per:5,unit:"ml"},{brand:"Sucralfate generik",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"}]},
+{name:"Tramadol",cat:"Analgesik & Antipiretik",indikasi:"Nyeri sedang-berat",basis:"dose",doseLow:1,doseHigh:2,timesPerDay:4,maxDay:400,route:"Oral/IV",
+ sediaan:[{brand:"Tramal",bentuk:"Kapsul 50mg",konsentrasi:50,per:1,unit:"kapsul"},{brand:"Tramadol generik",bentuk:"Injeksi 50mg/ml",konsentrasi:50,per:1,unit:"ml"},{brand:"Forres",bentuk:"Kapsul 50mg",konsentrasi:50,per:1,unit:"kapsul"}]},
+{name:"Urdahex (Asam Ursodeoksikolat)",cat:"Gastrointestinal & Antiemetik",indikasi:"Batu kolesterol kandung empedu, kolestasis",basis:"day",doseLow:10,doseHigh:15,timesPerDay:2,maxDay:900,route:"Oral",
+ sediaan:[{brand:"Urdahex",bentuk:"Kapsul 250mg",konsentrasi:250,per:1,unit:"kapsul"},{brand:"Urdafalk",bentuk:"Tablet 250mg",konsentrasi:250,per:1,unit:"tablet"}]},
+{name:"Valsartan",cat:"Jantung — Khusus",indikasi:"Hipertensi, gagal jantung (ARB)",basis:"fixed",fixedNote:"80-160mg, 1x/hari",route:"Oral",
+ sediaan:[{brand:"Diovan",bentuk:"Tablet 80mg",konsentrasi:80,per:1,unit:"tablet"},{brand:"Valsartan generik",bentuk:"Tablet 80mg",konsentrasi:80,per:1,unit:"tablet"}]},
+{name:"Vitamin B Complex",cat:"Vitamin & Suplemen",indikasi:"Suplementasi vitamin B, neuropati",basis:"fixed",fixedNote:"1 tablet/hari atau sesuai anjuran",route:"Oral",
+ sediaan:[{brand:"Neurobion",bentuk:"Tablet",konsentrasi:0,per:1,unit:"tablet"},{brand:"Becom-Zet",bentuk:"Tablet",konsentrasi:0,per:1,unit:"tablet"},{brand:"Vitamin B Complex generik",bentuk:"Tablet",konsentrasi:0,per:1,unit:"tablet"}]},
+{name:"Vitamin C",cat:"Vitamin & Suplemen",indikasi:"Suplementasi, daya tahan tubuh",basis:"fixed",fixedNote:"50-1000mg/hari sesuai indikasi",route:"Oral",
+ sediaan:[{brand:"Vitacimin",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Enervon-C",bentuk:"Tablet 500mg",konsentrasi:500,per:1,unit:"tablet"},{brand:"Redoxon",bentuk:"Tablet effervescent 1000mg",konsentrasi:1000,per:1,unit:"tablet"}]},
+{name:"Warfarin",cat:"Jantung — Khusus",indikasi:"Antikoagulan jangka panjang (fibrilasi atrium, katup jantung)",basis:"fixed",fixedNote:"Dosis individual, titrasi 2-10mg/hari berdasarkan target INR",route:"Oral",
+ sediaan:[{brand:"Simarc",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"},{brand:"Warfarin generik",bentuk:"Tablet 2mg",konsentrasi:2,per:1,unit:"tablet"}]},
+{name:"Xylometazoline",cat:"Respirasi",indikasi:"Dekongestan hidung topikal",basis:"fixed",fixedNote:"1-2 tetes/semprot per lubang hidung, 2-3x/hari, maksimal 3-5 hari pemakaian",route:"Topikal nasal",
+ sediaan:[{brand:"Otrivin",bentuk:"Nasal drops 0.05%/0.1%",konsentrasi:0,per:1,unit:"ml"},{brand:"Iliadin",bentuk:"Nasal spray 0.05%",konsentrasi:0,per:1,unit:"ml"}]},
+{name:"Zinc Sulfate",cat:"Vitamin & Suplemen",indikasi:"Terapi adjuvan diare akut pada anak",basis:"fixed",fixedNote:"Anak <6 bulan: 10mg/hari; ≥6 bulan: 20mg/hari, selama 10-14 hari",route:"Oral",
+ sediaan:[{brand:"Zinc generik",bentuk:"Tablet dispersible 20mg",konsentrasi:20,per:1,unit:"tablet"},{brand:"L-Zinc",bentuk:"Sirup 20mg/5ml",konsentrasi:20,per:5,unit:"ml"},{brand:"Zircum",bentuk:"Tablet 20mg",konsentrasi:20,per:1,unit:"tablet"}]}
+];
+
+function drugRuleText(d){
+  if(d.basis==='fixed') return d.fixedNote;
+  const range = d.doseLow===d.doseHigh ? d.doseLow : d.doseLow+'–'+d.doseHigh;
+  const basisLabel = d.basis==='dose' ? 'mg/kgBB/kali' : 'mg/kgBB/hari';
+  let txt = `${range} ${basisLabel}, ${d.timesPerDay}x/hari`;
+  if(d.note) txt += ` (${d.note})`;
+  return txt;
+}
+
+function toggleDrug(btn){
+  btn.closest('.drug-card').classList.toggle('open');
+}
+
+function buildDrugUI(){
+  const listEl = document.getElementById('drugList');
+  const sorted = DRUGS.slice().sort((a,b)=>a.name.localeCompare(b.name,'id'));
+  const groups = {};
+  sorted.forEach(d=>{
+    const letter = d.name[0].toUpperCase();
+    if(!groups[letter]) groups[letter]=[];
+    groups[letter].push(d);
+  });
+  let html='';
+  Object.keys(groups).sort().forEach(letter=>{
+    html += `<div class="letter-group" id="group-${letter}"><div class="letter-anchor">${letter}</div>`;
+    groups[letter].forEach(d=>{
+      const idx = DRUGS.indexOf(d);
+      const brandNames = d.sediaan.map(s=>s.brand).join(', ');
+      html += `<div class="drug-card" data-name="${d.name.toLowerCase()}" data-brands="${brandNames.toLowerCase()}">
+        <button type="button" class="drug-toggle" onclick="toggleDrug(this)">
+          <div class="drug-toggle-main">
+            <span class="cat-badge" style="background:${catColor(d.cat)}">${d.cat}</span>
+            <span class="drug-name">${d.name}</span>
+            <span class="drug-rule">${d.indikasi}</span>
+          </div>
+          <span class="chevron">▾</span>
+        </button>
+        <div class="drug-detail">
+          <div class="drug-route"><b>Rute:</b> ${d.route} &nbsp;·&nbsp; <b>Aturan dosis:</b> ${drugRuleText(d)}</div>
+          ${d.basis!=='fixed' ? `<div class="maxd">⚠ Dosis maksimal: ${d.maxDay} mg/hari</div>` : ''}
+          <table class="sediaan-table">
+            <thead><tr><th>Sediaan / Merek Dagang</th><th>Konsentrasi</th><th>Dosis per kali</th><th>Jumlah diberikan</th></tr></thead>
+            <tbody>
+            ${d.sediaan.map((s,si)=>`<tr data-drugidx="${idx}" data-sidx="${si}">
+                <td><span class="brand">${s.brand}</span><br><span class="drug-rule">${s.bentuk}</span></td>
+                <td>${s.konsentrasi>0? s.konsentrasi+'mg/'+s.per+s.unit : '—'}</td>
+                <td class="dose-mg">—</td>
+                <td class="dose-result result">Masukkan BB</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  listEl.innerHTML = html;
+  buildAzBar(Object.keys(groups));
+  recalcAllDoses();
+  filterDrugs();
+}
+
+function buildAzBar(lettersPresent){
+  const bar = document.getElementById('azBar');
+  const all = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  bar.innerHTML = all.map(l=>{
+    const has = lettersPresent.includes(l);
+    return `<button type="button" class="az-letter ${has?'':'disabled'}" ${has?`onclick="document.getElementById('group-${l}').scrollIntoView({behavior:'smooth',block:'start'})"`:'disabled'}>${l}</button>`;
+  }).join('');
+}
+
+function recalcAllDoses(){
+  const bb = parseFloat(document.getElementById('bbInput').value);
+  document.querySelectorAll('.sediaan-table tr[data-drugidx]').forEach(row=>{
+    const d = DRUGS[+row.dataset.drugidx];
+    const s = d.sediaan[+row.dataset.sidx];
+    const mgCell = row.querySelector('.dose-mg');
+    const resCell = row.querySelector('.dose-result');
+
+    if(d.basis==='fixed'){
+      mgCell.textContent='Dosis tetap';
+      resCell.innerHTML = '<span style="color:var(--muted);font-weight:600;">Lihat aturan dosis di atas</span>';
+      resCell.style.color='';
+      return;
+    }
+    if(!bb || bb<=0){
+      mgCell.textContent='—';
+      resCell.textContent='Masukkan BB di atas';
+      resCell.style.color='var(--muted)';
+      return;
+    }
+    if(s.konsentrasi<=0){
+      mgCell.textContent='—';
+      resCell.innerHTML='<span style="color:var(--muted);font-weight:600;">Sediaan kombinasi/non-standar, sesuaikan manual</span>';
+      return;
+    }
+
+    let mgLow, mgHigh;
+    if(d.basis==='dose'){ mgLow=d.doseLow*bb; mgHigh=d.doseHigh*bb; }
+    else { mgLow=(d.doseLow*bb)/d.timesPerDay; mgHigh=(d.doseHigh*bb)/d.timesPerDay; }
+
+    const mgText = (d.doseLow===d.doseHigh) ? mgLow.toFixed(1)+' mg' : mgLow.toFixed(1)+'–'+mgHigh.toFixed(1)+' mg';
+    mgCell.textContent = mgText+' /kali';
+
+    const volLow = (mgLow/s.konsentrasi)*s.per;
+    const volHigh = (mgHigh/s.konsentrasi)*s.per;
+    const resText = (d.doseLow===d.doseHigh) ? volLow.toFixed(2)+' '+s.unit : volLow.toFixed(2)+'–'+volHigh.toFixed(2)+' '+s.unit;
+
+    const dailyHigh = mgHigh*d.timesPerDay;
+    let warn='';
+    if(d.maxDay && dailyHigh > d.maxDay){ warn = '<span class="warn-pill">⚠ &gt; dosis maks harian</span>'; }
+
+    resCell.innerHTML = `${resText} <span class="drug-rule">/kali (${d.timesPerDay}x sehari)</span> ${warn}`;
+    resCell.style.color='var(--accent)';
+  });
+}
+document.getElementById('bbInput').addEventListener('input', recalcAllDoses);
+
+function filterDrugs(){
+  const q = document.getElementById('drugSearch').value.toLowerCase().trim();
+  let shown=0, total=0;
+  document.querySelectorAll('.letter-group').forEach(group=>{
+    let groupHas=false;
+    group.querySelectorAll('.drug-card').forEach(card=>{
+      total++;
+      const match = !q || card.dataset.name.includes(q) || card.dataset.brands.includes(q);
+      card.style.display = match? '' : 'none';
+      if(match){ shown++; groupHas=true; }
+    });
+    group.style.display = groupHas? '' : 'none';
+  });
+  document.getElementById('drugCount').textContent = `Menampilkan ${shown} dari ${total} obat`;
+}
+document.getElementById('drugSearch').addEventListener('input', filterDrugs);
+
+buildDrugUI();
+
+/* ====================================================================
+   GUIDELINE 2026 — RINGKASAN PENANGANAN IGD & ALUR DIAGNOSIS
+   (materi edukasi internal, bukan pengganti pedoman resmi)
+==================================================================== */
+const GUIDELINES = [
+  {
+    id:"abcde", tag:"Primary Survey", title:"Pendekatan ABCDE Kegawatdaruratan",
+    ringkas:"Kerangka penilaian awal pasien gawat darurat secara sistematis dan berurutan.",
+    svg:"abcde",
+    sections:[
+      {title:"A — Airway (Jalan Napas) + kontrol servikal", items:[
+        "Nilai patensi jalan napas: bicara, snoring, gurgling, stridor",
+        "Bersihkan sumbatan (suction, finger sweep bila perlu), pasang OPA/NPA bila perlu",
+        "Curigai cedera servikal pada trauma — imobilisasi in-line bila indikasi",
+        "Pertimbangkan airway definitif (intubasi) bila pasien tidak mampu mempertahankan jalan napas"
+      ]},
+      {title:"B — Breathing (Pernapasan)", items:[
+        "Inspeksi: frekuensi napas, retraksi, sianosis, jejas dada, gerak dada simetris/tidak",
+        "Auskultasi paru kanan-kiri, periksa SpO2",
+        "Berikan oksigen suplementasi sesuai target saturasi",
+        "Kenali kondisi yang mengancam jiwa segera: tension pneumothorax, flail chest, open pneumothorax, hematothorax masif"
+      ]},
+      {title:"C — Circulation (Sirkulasi) + kontrol perdarahan", items:[
+        "Nilai nadi, tekanan darah, CRT, akral, tanda syok",
+        "Hentikan perdarahan eksternal aktif (tekanan langsung, tourniquet bila masif & mengancam jiwa)",
+        "Pasang akses IV ukuran besar, ambil sampel darah, mulai resusitasi cairan sesuai kondisi",
+        "Identifikasi sumber perdarahan tersembunyi: toraks, abdomen, pelvis, retroperitoneal, tulang panjang"
+      ]},
+      {title:"D — Disability (Status Neurologis)", items:[
+        "Nilai kesadaran cepat: GCS atau AVPU (Alert, Verbal, Pain, Unresponsive)",
+        "Periksa pupil (ukuran, isokor/anisokor, refleks cahaya)",
+        "Cek gula darah sewaktu pada penurunan kesadaran",
+        "Waspadai tanda lateralisasi/herniasi pada trauma kepala"
+      ]},
+      {title:"E — Exposure (Buka Pakaian) + kontrol suhu", items:[
+        "Buka pakaian untuk evaluasi menyeluruh, log-roll bila trauma untuk periksa punggung",
+        "Cegah hipotermia setelah pemeriksaan (selimut hangat, cairan hangat)",
+        "Dokumentasikan seluruh jejas/luka yang ditemukan"
+      ]}
+    ],
+    source:"Kerangka konsep umum ATLS/ACLS primary survey — sesuaikan dengan protokol & ketersediaan alat fasilitas masing-masing."
+  },
+  {
+    id:"triase", tag:"Triase", title:"Triase Kegawatdaruratan IGD",
+    ringkas:"Pengelompokan prioritas pasien berdasarkan tingkat kegawatan untuk menentukan urutan penanganan.",
+    svg:"triase",
+    sections:[
+      {title:"Kategori Prioritas Umum", items:[
+        "P1 / Merah — Gawat darurat (ancaman nyawa langsung): henti jantung, sumbatan jalan napas, syok, trauma berat",
+        "P2 / Kuning — Gawat tidak darurat / darurat tidak gawat: perlu penanganan cepat namun kondisi belum mengancam nyawa segera",
+        "P3 / Hijau — Tidak gawat tidak darurat: kondisi ringan, dapat menunggu",
+        "P0 / Hitam — Pasien meninggal / tidak ada harapan hidup (pada situasi bencana massal)"
+      ]},
+      {title:"Parameter yang Dinilai Saat Triase", items:[
+        "Kesadaran & jalan napas","Pola & usaha napas","Sirkulasi (nadi, perdarahan, tanda syok)",
+        "Nyeri (skala) dan mekanisme cedera","Tanda vital lengkap","Keluhan & onset gejala"
+      ]},
+      {title:"Re-triase", items:[
+        "Triase bersifat dinamis — re-evaluasi berkala terutama pada area observasi/tunggu",
+        "Naikkan prioritas bila kondisi memburuk selama menunggu"
+      ]}
+    ],
+    source:"Disarikan dari prinsip umum sistem triase IGD (mis. ATS/ESI) — kategori & istilah dapat berbeda mengikuti SOP rumah sakit setempat."
+  },
+  {
+    id:"rjp", tag:"Resusitasi", title:"Bantuan Hidup Dasar & Lanjut (Henti Jantung)",
+    ringkas:"Alur umum resusitasi jantung paru pada pasien dengan kecurigaan henti jantung.",
+    svg:"rjp",
+    sections:[
+      {title:"Langkah Awal", items:[
+        "Pastikan keamanan penolong & lingkungan",
+        "Cek respons, cek napas & nadi secara bersamaan (≤10 detik)",
+        "Jika tidak responsif dan tidak ada napas normal/nadi → aktifkan tim code blue / panggil bantuan, mulai RJP"
+      ]},
+      {title:"Kompresi & Ventilasi (BLS)", items:[
+        "Kompresi dada: kedalaman ±5-6cm, frekuensi 100-120x/menit, minimalkan interupsi",
+        "Rasio kompresi:ventilasi 30:2 bila airway belum definitif",
+        "Pasang monitor/AED/defibrilator secepat mungkin, analisa ritme tiap 2 menit"
+      ]},
+      {title:"Identifikasi Ritme & Tata Laksana Lanjut (ACLS)", items:[
+        "Ritme dapat dikejut (VF/VT tanpa nadi): defibrilasi segera, lanjutkan RJP",
+        "Ritme tidak dapat dikejut (PEA/asistol): lanjutkan RJP berkualitas tinggi, cari & atasi penyebab reversibel",
+        "Identifikasi penyebab reversibel (5H5T): hipoksia, hipovolemia, hidrogen ion/asidosis, hipo/hiperkalemia, hipotermia, tension pneumothorax, tamponade, toksin, trombosis paru, trombosis koroner",
+        "Obat-obat resusitasi diberikan sesuai protokol ACLS institusi — dosis & interval mengikuti pedoman resmi terkini"
+      ]},
+      {title:"Pasca Resusitasi", items:[
+        "Bila sirkulasi spontan kembali (ROSC): stabilisasi ABC, target oksigenasi & tekanan darah optimal",
+        "Pertimbangkan target temperature management sesuai fasilitas",
+        "Cari & tangani etiologi penyebab henti jantung"
+      ]}
+    ],
+    source:"Ringkasan alur umum BLS/ACLS — algoritma rinci & dosis obat resusitasi mengikuti pedoman resmi terbaru (AHA/ERC) yang berlaku di institusi."
+  },
+  {
+    id:"syok", tag:"Diagnosis Cepat", title:"Pendekatan Awal Pasien Syok",
+    ringkas:"Identifikasi jenis syok secara cepat untuk menentukan tata laksana awal yang tepat.",
+    svg:"syok",
+    sections:[
+      {title:"Tanda Umum Syok", items:[
+        "Hipotensi (dapat terkompensasi pada fase awal)","Takikardia","Akral dingin & CRT memanjang (kecuali syok distributif fase awal)",
+        "Perubahan status mental","Produksi urin menurun","Laktat meningkat (bila tersedia pemeriksaan)"
+      ]},
+      {title:"Klasifikasi Jenis Syok", items:[
+        "Syok Hipovolemik — kehilangan volume (perdarahan, dehidrasi berat)",
+        "Syok Kardiogenik — gagal pompa jantung (infark luas, aritmia berat)",
+        "Syok Distributif — vasodilatasi sistemik (sepsis, anafilaksis, neurogenik)",
+        "Syok Obstruktif — hambatan mekanis aliran darah (tamponade, tension pneumothorax, emboli paru masif)"
+      ]},
+      {title:"Prinsip Tata Laksana Awal", items:[
+        "Amankan airway-breathing, berikan oksigen sesuai kebutuhan",
+        "Akses IV adekuat, resusitasi cairan sesuai jenis syok (hati-hati pada syok kardiogenik)",
+        "Identifikasi & atasi sumber/etiologi secepat mungkin",
+        "Pertimbangkan vasopresor/inotropik sesuai indikasi & ketersediaan, di bawah pemantauan ketat",
+        "Pemantauan ketat: tanda vital, status mental, produksi urin, perfusi perifer"
+      ]}
+    ],
+    source:"Klasifikasi syok bersifat umum dan dasar — tata laksana spesifik mengikuti pedoman per etiologi (sepsis, kardiogenik, dll) yang berlaku di institusi."
+  },
+  {
+    id:"aks", tag:"Diagnosis Cepat", title:"Sindrom Koroner Akut (Nyeri Dada)",
+    ringkas:"Alur evaluasi cepat pasien dengan kecurigaan sindrom koroner akut.",
+    svg:"jantung",
+    sections:[
+      {title:"Anamnesis Kunci", items:[
+        "Karakteristik nyeri dada: lokasi, kualitas, durasi, penjalaran, faktor pencetus/pereda",
+        "Gejala penyerta: sesak, diaforesis, mual, nyeri menjalar ke lengan/rahang/punggung",
+        "Faktor risiko kardiovaskular: hipertensi, diabetes, dislipidemia, merokok, riwayat keluarga, riwayat PJK"
+      ]},
+      {title:"Evaluasi Awal (target waktu cepat)", items:[
+        "EKG 12-lead dalam 10 menit pertama sejak kedatangan",
+        "Pemantauan jantung kontinu, akses IV, oksigen bila saturasi rendah",
+        "Pemeriksaan biomarker jantung (troponin) sesuai protokol institusi",
+        "Nilai tanda vital & tanda gagal jantung/syok kardiogenik (klasifikasi Killip)"
+      ]},
+      {title:"Stratifikasi Berdasarkan EKG", items:[
+        "ST elevasi (STEMI) — pertimbangkan reperfusi segera (PCI primer/fibrinolitik) sesuai ketersediaan & waktu onset",
+        "Tanpa ST elevasi (NSTEMI/UAP) — stratifikasi risiko, terapi antiplatelet/antikoagulan sesuai protokol, rencana evaluasi lanjutan",
+        "EKG normal namun klinis curiga tinggi — observasi serial EKG & biomarker"
+      ]},
+      {title:"Tata Laksana Awal Umum", items:[
+        "Terapi antiplatelet & antikoagulan sesuai protokol institusi (lihat modul Hitung Dosis untuk referensi sediaan)",
+        "Nitrat & analgesik untuk nyeri sesuai indikasi & kontraindikasi (hindari nitrat pada hipotensi/infark inferior dengan keterlibatan ventrikel kanan)",
+        "Rujuk/konsul kardiologi untuk tata laksana definitif"
+      ]}
+    ],
+    source:"Ringkasan prinsip umum evaluasi SKA — algoritma reperfusi & terapi definitif mengikuti pedoman PERKI/ESC/AHA terbaru."
+  },
+  {
+    id:"stroke", tag:"Diagnosis Cepat", title:"Stroke Akut (Time is Brain)",
+    ringkas:"Pengenalan cepat tanda stroke dan prinsip penanganan dalam batas waktu kritis.",
+    svg:"stroke",
+    sections:[
+      {title:"Pengenalan Cepat — FAST", items:[
+        "Face — kelumpuhan/asimetri wajah, mulut mencong",
+        "Arm — kelemahan satu sisi anggota gerak",
+        "Speech — bicara pelo/sulit dimengerti",
+        "Time — segera ke fasilitas kesehatan, catat waktu onset terakhir terlihat normal"
+      ]},
+      {title:"Evaluasi Awal di IGD", items:[
+        "Stabilisasi ABC, cek gula darah sewaktu (singkirkan hipoglikemia sebagai mimik stroke)",
+        "Nilai skor stroke terstandar (mis. NIHSS) bila fasilitas tersedia",
+        "Pencitraan otak (CT scan) secepatnya untuk membedakan stroke iskemik vs hemoragik",
+        "Catat waktu onset secara akurat — menentukan kelayakan terapi reperfusi"
+      ]},
+      {title:"Prinsip Tata Laksana", items:[
+        "Stroke iskemik dalam window time tertentu: pertimbangkan trombolitik/trombektomi sesuai kriteria & ketersediaan fasilitas",
+        "Stroke hemoragik: kontrol tekanan darah ketat, evaluasi bedah saraf bila indikasi",
+        "Hindari penurunan tekanan darah agresif pada fase akut kecuali ada indikasi spesifik",
+        "Pantau status neurologis berkala untuk deteksi perburukan dini"
+      ]}
+    ],
+    source:"Prinsip umum penanganan stroke akut — kriteria & dosis terapi reperfusi mengikuti pedoman PERDOSSI/AHA-ASA terbaru."
+  },
+  {
+    id:"sepsis", tag:"Diagnosis Cepat", title:"Pengenalan & Tata Laksana Awal Sepsis",
+    ringkas:"Deteksi dini sepsis dan prinsip bundle penanganan jam pertama.",
+    svg:"sepsis",
+    sections:[
+      {title:"Kecurigaan Sepsis", items:[
+        "Dugaan/terbukti infeksi disertai disfungsi organ akut",
+        "Skrining cepat: perubahan status mental, frekuensi napas meningkat, tekanan darah rendah",
+        "Skor qSOFA (RR≥22, perubahan kesadaran, TD sistolik≤100) dapat membantu identifikasi risiko tinggi"
+      ]},
+      {title:"Prinsip Bundle Jam Pertama", items:[
+        "Ukur kadar laktat, ulang bila awalnya meningkat",
+        "Ambil kultur darah sebelum pemberian antibiotik (bila tidak menunda terapi secara signifikan)",
+        "Berikan antibiotik empiris spektrum luas secepatnya sesuai sumber infeksi tersangka",
+        "Mulai resusitasi cairan kristaloid pada hipotensi/laktat tinggi, evaluasi respons",
+        "Berikan vasopresor bila tetap hipotensi setelah resusitasi cairan adekuat, target MAP sesuai protokol"
+      ]},
+      {title:"Pemantauan & Re-evaluasi", items:[
+        "Evaluasi ulang status hemodinamik & perfusi secara berkala",
+        "Identifikasi & kendalikan sumber infeksi (drainase abses, dll bila perlu)",
+        "Eskalasi ke perawatan intensif bila tidak respons/tanda syok refrakter"
+      ]}
+    ],
+    source:"Disarikan dari prinsip umum Surviving Sepsis Campaign — detail bundle & target terapi mengikuti pedoman resmi terbaru yang berlaku."
+  },
+  {
+    id:"kejang", tag:"Diagnosis Cepat", title:"Status Epileptikus & Kejang Akut",
+    ringkas:"Alur penanganan kejang akut dan status epileptikus di IGD.",
+    svg:"kejang",
+    sections:[
+      {title:"Penilaian Awal", items:[
+        "Amankan jalan napas, posisikan miring (recovery position) bila kejang aktif",
+        "Lindungi pasien dari trauma, jangan memasukkan benda apapun ke mulut",
+        "Cek gula darah sewaktu, suhu tubuh, saturasi oksigen",
+        "Catat durasi & karakteristik kejang (fokal/umum, tonik-klonik, dll)"
+      ]},
+      {title:"Status Epileptikus (kejang >5 menit atau berulang tanpa pulih sadar)", items:[
+        "Tahap awal: benzodiazepin sesuai protokol & rute yang tersedia (lihat modul Hitung Dosis)",
+        "Bila kejang menetap: lanjut ke obat antiepilepsi lini kedua sesuai protokol institusi",
+        "Bila refrakter: pertimbangkan anestesi umum & perawatan intensif",
+        "Cari & atasi penyebab reversibel: hipoglikemia, gangguan elektrolit, infeksi SSP, putus obat"
+      ]},
+      {title:"Pasca Kejang", items:[
+        "Evaluasi status mental hingga kembali ke baseline",
+        "Pemeriksaan penunjang sesuai indikasi (pencitraan, EEG, laboratorium)",
+        "Edukasi & rencana kontrol/rujukan neurologi"
+      ]}
+    ],
+    source:"Ringkasan prinsip umum tata laksana kejang akut — algoritma & dosis spesifik mengikuti pedoman PERDOSSI/ILAE terbaru."
+  },
+  {
+    id:"anafilaksis", tag:"Diagnosis Cepat", title:"Anafilaksis",
+    ringkas:"Reaksi alergi berat yang mengancam jiwa — kenali cepat, tangani segera.",
+    svg:"anafilaksis",
+    sections:[
+      {title:"Kriteria Klinis (kecurigaan tinggi)", items:[
+        "Onset akut (menit-jam) dengan keterlibatan kulit/mukosa (urtikaria, angioedema) DAN gangguan napas atau sirkulasi",
+        "Atau: penurunan tekanan darah akut setelah pajanan alergen yang diketahui",
+        "Atau: gejala gastrointestinal berat setelah pajanan alergen yang diketahui"
+      ]},
+      {title:"Tata Laksana Segera", items:[
+        "Hentikan pajanan alergen bila memungkinkan",
+        "Posisikan terlentang dengan kaki ditinggikan (atau posisi nyaman bila sesak berat), hindari posisi berdiri tiba-tiba",
+        "Epinefrin intramuskular sesegera mungkin adalah terapi lini pertama — jangan ditunda (lihat modul Hitung Dosis untuk referensi)",
+        "Oksigen suplementasi, akses IV, resusitasi cairan bila hipotensi",
+        "Antihistamin & kortikosteroid sebagai terapi tambahan (bukan pengganti epinefrin)"
+      ]},
+      {title:"Pemantauan", items:[
+        "Observasi minimal beberapa jam karena risiko reaksi bifasik",
+        "Edukasi pasien mengenai alergen pencetus & rencana pembekalan epinefrin auto-injector bila tersedia"
+      ]}
+    ],
+    source:"Prinsip umum tata laksana anafilaksis — dosis & rute mengikuti pedoman resmi (mis. WAO/EAACI) yang berlaku di institusi."
+  },
+  {
+    id:"trauma-kepala", tag:"Diagnosis Cepat", title:"Trauma Kepala — Skrining Cepat",
+    ringkas:"Evaluasi awal cedera kepala untuk menentukan kebutuhan pencitraan & observasi.",
+    svg:"kepala",
+    sections:[
+      {title:"Penilaian Awal", items:[
+        "Nilai GCS, ukuran & reaktivitas pupil, tanda lateralisasi",
+        "Tanyakan mekanisme cedera, riwayat hilang kesadaran, muntah, kejang pasca trauma",
+        "Periksa tanda fraktur basis kranii: battle sign, racoon eyes, otorrhea/rhinorrhea CSS"
+      ]},
+      {title:"Klasifikasi Kasar Berdasarkan GCS", items:[
+        "GCS 14-15: cedera kepala ringan","GCS 9-13: cedera kepala sedang","GCS ≤8: cedera kepala berat — pertimbangkan airway definitif"
+      ]},
+      {title:"Tanda Bahaya yang Memerlukan Pencitraan/Observasi Ketat", items:[
+        "Penurunan kesadaran progresif","Kejang pasca trauma","Muntah berulang","Sakit kepala berat memberat",
+        "Defisit neurologis fokal","Curiga fraktur tengkorak terbuka/depresi","Usia lanjut, gangguan koagulasi/penggunaan antikoagulan"
+      ]},
+      {title:"Prinsip Tata Laksana", items:[
+        "Stabilisasi ABCDE, imobilisasi servikal bila indikasi trauma multipel",
+        "CT scan kepala sesuai kriteria klinis (mis. kriteria Kanada/NICE)",
+        "Konsul bedah saraf pada temuan abnormal pencitraan atau perburukan klinis",
+        "Observasi neurologis berkala meski pencitraan awal normal pada kasus risiko tinggi"
+      ]}
+    ],
+    source:"Ringkasan prinsip umum evaluasi cedera kepala — kriteria pencitraan spesifik mengikuti pedoman (mis. NICE/Canadian CT Head Rule) yang diadopsi institusi."
+  }
+];
+
+function gl_svg(key){
+  const c1='var(--accent2)', c2='var(--navy2)', c3='var(--warn)';
+  const svgs = {
+    abcde:`<svg viewBox="0 0 320 140" width="280"><rect x="5" y="5" width="60" height="60" rx="10" fill="none" stroke="${c1}" stroke-width="3"/><text x="35" y="42" text-anchor="middle" font-size="26" font-weight="800" fill="${c2}">A</text>
+      <rect x="70" y="5" width="60" height="60" rx="10" fill="none" stroke="${c1}" stroke-width="3"/><text x="100" y="42" text-anchor="middle" font-size="26" font-weight="800" fill="${c2}">B</text>
+      <rect x="135" y="5" width="60" height="60" rx="10" fill="none" stroke="${c1}" stroke-width="3"/><text x="165" y="42" text-anchor="middle" font-size="26" font-weight="800" fill="${c2}">C</text>
+      <rect x="200" y="5" width="60" height="60" rx="10" fill="none" stroke="${c1}" stroke-width="3"/><text x="230" y="42" text-anchor="middle" font-size="26" font-weight="800" fill="${c2}">D</text>
+      <rect x="265" y="5" width="50" height="60" rx="10" fill="none" stroke="${c1}" stroke-width="3"/><text x="290" y="42" text-anchor="middle" font-size="26" font-weight="800" fill="${c2}">E</text>
+      <path d="M65 35 H70 M130 35 H135 M195 35 H200 M260 35 H265" stroke="${c2}" stroke-width="3" marker-end="url(#arrA)"/>
+      <text x="35" y="85" text-anchor="middle" font-size="10" fill="${c2}">Airway</text><text x="100" y="85" text-anchor="middle" font-size="10" fill="${c2}">Breathing</text>
+      <text x="165" y="85" text-anchor="middle" font-size="10" fill="${c2}">Circulation</text><text x="230" y="85" text-anchor="middle" font-size="10" fill="${c2}">Disability</text>
+      <text x="290" y="85" text-anchor="middle" font-size="10" fill="${c2}">Exposure</text>
+      <defs><marker id="arrA" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="${c2}"/></marker></defs></svg>`,
+    triase:`<svg viewBox="0 0 280 140" width="260"><circle cx="60" cy="40" r="28" fill="#c0392b"/><circle cx="140" cy="40" r="28" fill="#d9a426"/><circle cx="220" cy="40" r="28" fill="${c1}"/>
+      <text x="60" y="46" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">P1</text><text x="140" y="46" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">P2</text><text x="220" y="46" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">P3</text>
+      <text x="60" y="85" text-anchor="middle" font-size="10" fill="${c2}">Gawat Darurat</text><text x="140" y="85" text-anchor="middle" font-size="10" fill="${c2}">Darurat Tidak Gawat</text><text x="220" y="85" text-anchor="middle" font-size="10" fill="${c2}">Tidak Gawat</text></svg>`,
+    rjp:`<svg viewBox="0 0 280 140" width="260"><path d="M10 100 L60 100 L75 40 L90 120 L105 70 L120 100 L270 100" fill="none" stroke="${c3}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+      <circle cx="60" cy="100" r="3" fill="${c3}"/><text x="140" y="125" text-anchor="middle" font-size="11" fill="${c2}">Kompresi 100-120x/menit, kedalaman 5-6cm</text></svg>`,
+    syok:`<svg viewBox="0 0 260 140" width="240"><path d="M130 15 C90 55 60 80 60 105 a70 70 0 0 0 140 0 c0 -25 -30 -50 -70 -90Z" fill="none" stroke="${c3}" stroke-width="3"/>
+      <line x1="130" y1="50" x2="130" y2="95" stroke="${c3}" stroke-width="4"/><circle cx="130" cy="110" r="4" fill="${c3}"/>
+      <text x="130" y="132" text-anchor="middle" font-size="10" fill="${c2}">Perfusi jaringan tidak adekuat</text></svg>`,
+    jantung:`<svg viewBox="0 0 260 140" width="240"><path d="M130 30 C100 5 50 20 50 60 C50 95 100 120 130 135 C160 120 210 95 210 60 C210 20 160 5 130 30Z" fill="none" stroke="${c3}" stroke-width="3"/>
+      <path d="M30 75 H75 L90 55 L105 95 L120 70 L135 70 H230" fill="none" stroke="${c2}" stroke-width="2.5"/></svg>`,
+    stroke:`<svg viewBox="0 0 260 140" width="240"><circle cx="130" cy="60" r="45" fill="none" stroke="${c1}" stroke-width="3"/>
+      <path d="M100 50 Q130 30 160 50" stroke="${c2}" stroke-width="3" fill="none"/><path d="M95 70 Q130 95 165 70" stroke="${c3}" stroke-width="3" fill="none"/>
+      <text x="130" y="125" text-anchor="middle" font-size="11" fill="${c2}">F.A.S.T — Time is Brain</text></svg>`,
+    sepsis:`<svg viewBox="0 0 260 140" width="240"><circle cx="70" cy="70" r="8" fill="${c3}"/><circle cx="120" cy="40" r="6" fill="${c3}"/><circle cx="160" cy="80" r="7" fill="${c3}"/><circle cx="200" cy="50" r="5" fill="${c3}"/><circle cx="190" cy="100" r="6" fill="${c3}"/>
+      <circle cx="130" cy="75" r="35" fill="none" stroke="${c2}" stroke-width="3"/><text x="130" y="125" text-anchor="middle" font-size="11" fill="${c2}">Infeksi + disfungsi organ akut</text></svg>`,
+    kejang:`<svg viewBox="0 0 260 140" width="240"><path d="M10 70 L60 70 L75 20 L95 110 L115 40 L135 90 L150 70 L250 70" fill="none" stroke="${c3}" stroke-width="3" stroke-linejoin="round"/>
+      <text x="130" y="125" text-anchor="middle" font-size="11" fill="${c2}">Aktivitas elektrik abnormal otak</text></svg>`,
+    anafilaksis:`<svg viewBox="0 0 260 140" width="240"><path d="M130 100 C90 75 80 50 100 30 C115 15 145 15 160 30 C180 50 170 75 130 100Z" fill="none" stroke="${c3}" stroke-width="3"/>
+      <line x1="130" y1="100" x2="130" y2="125" stroke="${c3}" stroke-width="3"/><text x="130" y="20" text-anchor="middle" font-size="20">⚠️</text></svg>`,
+    kepala:`<svg viewBox="0 0 260 140" width="240"><ellipse cx="130" cy="60" rx="55" ry="45" fill="none" stroke="${c1}" stroke-width="3"/>
+      <path d="M85 55 L120 35 L110 60 L140 50 L100 90" fill="none" stroke="${c3}" stroke-width="3" stroke-linejoin="round"/>
+      <text x="130" y="125" text-anchor="middle" font-size="11" fill="${c2}">Nilai GCS, pupil, tanda lateralisasi</text></svg>`
+  };
+  return svgs[key] || '';
+}
+
+function renderGuidelineList(){
+  const list = document.getElementById('gl-list');
+  document.getElementById('gl-detail-wrap').innerHTML='';
+  document.getElementById('gl-detail-wrap').style.display='none';
+  list.style.display='grid';
+  list.innerHTML = GUIDELINES.map(g=>`
+    <div class="gl-card" onclick="openGuideline('${g.id}')">
+      <div class="gl-tag">${g.tag}</div>
+      <div class="gl-ico">${gl_svg(g.svg).replace(/width="\d+"/,'width="70"')}</div>
+      <h4>${g.title}</h4>
+      <p>${g.ringkas}</p>
+    </div>`).join('');
+}
+
+function openGuideline(id){
+  const g = GUIDELINES.find(x=>x.id===id);
+  if(!g) return;
+  document.getElementById('gl-list').style.display='none';
+  const wrap = document.getElementById('gl-detail-wrap');
+  wrap.style.display='block';
+  let html = `<button type="button" class="back-btn gl-back" onclick="renderGuidelineList()">← Kembali ke daftar guideline</button>`;
+  html += `<div class="card">
+    <div class="gl-tag">${g.tag}</div>
+    <h2 style="border:none;padding:0;">${g.title}</h2>
+    <p style="color:var(--muted);font-size:.88rem;">${g.ringkas}</p>
+    <div class="gl-illust">${gl_svg(g.svg)}</div>`;
+  g.sections.forEach(sec=>{
+    html += `<div class="gl-section"><h4>${sec.title}</h4><ul>${sec.items.map(it=>`<li>${it}</li>`).join('')}</ul></div>`;
+  });
+  html += `<div class="gl-source">📚 ${g.source}</div>
+  </div>`;
+  wrap.innerHTML = html;
+  window.scrollTo({top:0});
+}
+</script>
+</body>
+</html>
